@@ -8,24 +8,26 @@ def create_staff_user(name, password):
     db.session.commit()
     return newstaff
 
-def timeShift(shiftId, type):
+def timeShift(shiftId, type, time=None):
     shift = Shift.query.get(shiftId)
     if not shift:
         return "Shift not found"
     
-    time = datetime.now()
+    if not time: 
+        time = datetime.now()
+        
     if type == "in":
         if shift.timedIn is not None:
             return "Already timed in this shift"
         
         shift.timedIn = time
         delta = time - shift.startTime
-        if int(delta.total_seconds() / 600) > 10: #If timeIn is 10 minutes after scheduled start time
+        if delta.total_seconds() > 600: #If timeIn is more than 10 minutes after scheduled start time
             shift.attendance = "lateTimeIn"
             
         db.session.add(shift)
         db.session.commit()
-        return f'Timed in at {time.strftime("%Y/%m/%d %H:%M")}'
+        return f'Timed in at {time.strftime("%Y/%m/%d %H:%M")} for shiftID: {shiftId}'
         
     elif type == "out":
         if shift.timedOut is not None:
@@ -33,19 +35,21 @@ def timeShift(shiftId, type):
         
         shift.timedOut = time
         delta = shift.endTime - time
-        if int(delta.total_seconds() / 600) > 10: #If timeOut is 10 minutes before scheduled end time
+        if delta.total_seconds() > 600: #If timeOut is more than 10 minutes before scheduled end time
             shift.attendance = "earlyTimeOut"
+        elif shift.attendance == "Pending":
+            shift.attendance = "onTime"
             
         db.session.add(shift)
         db.session.commit()
-        return f'Timed out at {time.strftime("%Y/%m/%d %H:%M")}'
+        return f'Timed out at {time.strftime("%Y/%m/%d %H:%M")} for shiftID: {shiftId}'
 
 def get_shifts(staffId):
     staff = Staff.query.get(staffId)
     if not staff: return None
     
     shifts = ""
-    for shift in staff.scheduledShifts:
+    for shift in staff.shifts:
         shifts += f'ID: {shift.Id}, {shift.startTime.strftime("%Y/%m/%d - %H:%M")} to {shift.endTime.strftime("%Y/%m/%d - %H:%M")}\n'
         
     return shifts

@@ -1,16 +1,27 @@
 from App.models import Admin, Staff, Shift, Report
 from App.database import db
+from datetime import datetime, timedelta
 
 def generate_roster():
+    today = datetime.now().date()
+    weekStart = today - timedelta(days=today.weekday())
+    weekEnd = weekStart + timedelta(days=6)
+    
     allStaff = Staff.query.all()
     roster = {}
     
     for staff in allStaff:
-        roster[staff.name] = [f'{shift.startTime.strftime("%Y/%m/%d %H:%M")} - {shift.endTime.strftime("%Y/%m/%d %H:%M")}' for shift in staff.scheduledShifts]
+        shifts = Shift.query.filter(Shift.staffId == staff.id, Shift.startTime >= weekStart, Shift.startTime <= weekEnd).all()
+        
+        roster[staff.name] = [f'{shift.startTime.strftime("%Y/%m/%d %H:%M")} - {shift.endTime.strftime("%Y/%m/%d %H:%M")}' for shift in shifts]
         
     return roster
    
 def generate_report_data():
+    today = datetime.now().date()
+    weekStart = today - timedelta(days=today.weekday())
+    weekEnd = weekStart + timedelta(days=6)
+
     allStaff = Staff.query.all()
     data = {}
     for staff in allStaff:
@@ -23,7 +34,8 @@ def generate_report_data():
         absents = 0
         shiftIds = []
         
-        for shift in staff.scheduledShifts:
+        shifts = Shift.query.filter(Shift.staffId == staff.id, Shift.startTime >= weekStart, Shift.startTime <= weekEnd).all() #Grab shifts from the past 7 days
+        for shift in shifts:
             shiftIds.append(shift.id)
             totalShifts += 1
             totalExpectedHours += shift.getExpectedHours()
@@ -43,13 +55,13 @@ def generate_report_data():
                 absents += 1
         
         data[staff.name] = {
-            "Total Shifts": totalShifts,
-            "Total Expected Hours": totalExpectedHours,
-            "Total Worked Hours": totalWorkedHours,
-            "On Time": onTime,
-            "Late Time In": lateTimeIns,
-            "Early Time Out": earlyTimeOuts,
-            "Absent": absents,
+            "totalShifts": totalShifts,
+            "totalExpectedHours": totalExpectedHours,
+            "totalWorkedHours": totalWorkedHours,
+            "onTime": onTime,
+            "lateTimeIns": lateTimeIns,
+            "earlyTimeOuts": earlyTimeOuts,
+            "absents": absents,
             "shiftIds": shiftIds
         }
         
@@ -65,6 +77,36 @@ def create_report():
     db.session.commit()
     return newReport
 
+def list_reports():
+    allReports = Report.query.all()
+    str = ""
+    for report in allReports:
+        str += f'Report ID: {report.id} | Generated on: {report.dateGenerated}\n'
+        
+    return str
+
+def pretty_print_report_json(report):
+    str = f'''
+        ReportID: {report["id"]}
+        Date Generated: {report["dateGenerated"]}
+    '''
+    
+    for staffName, data in report["data"].items():
+        str += f'''
+        -----------------------------------------
+            Name: {staffName}
+            Total Shifts: {data["totalShifts"]},
+            Total Expected Hours: {data["totalExpectedHours"]},
+            Total Worked Hours: {data["totalWorkedHours"]:.2f},
+            On Time: {data["onTime"]},
+            Late Time Ins: {data["lateTimeIns"]},
+            Early Time Outs: {data["earlyTimeOuts"]},
+            Absent: {data["absents"]},
+            shiftIds: {data["shiftIds"]}
+        -----------------------------------------
+        '''
+    return str
+    
 def get_report(id):
     return db.session.get(Report, id)
 

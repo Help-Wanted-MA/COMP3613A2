@@ -25,3 +25,14 @@ def delete_shift(id):
     if not shift: return None
     db.session.delete(shift)
     db.session.commit()
+    
+def pretty_print_shift_json(shift):
+    str = f'''
+        ShiftID: {shift["id"]}
+        Start time: {shift["startTime"]}
+        End time: {shift["endTime"]}
+        Timed in: {shift["timedIn"]}
+        Timed out: {shift["timedOut"]}
+        Attendance: {shift["attendance"]}
+    '''
+    return str

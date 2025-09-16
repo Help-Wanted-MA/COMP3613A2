@@ -15,7 +15,6 @@ class Report(db.Model):
     def get_json(self):
         return{
             'id': self.id,
-            'reportName': self.name,
             'dateGenerated': self.dateGenerated.strftime("%Y-%m-%d"),
             'roster': self.roster,
             'data': self.data

@@ -32,7 +32,7 @@ class Shift(db.Model):
     
     def getWorkedHours(self):
         if not self.timedIn or not self.timedOut:
-            return None
+            return 0
         else:
             return (self.timedOut - self.timedIn).total_seconds() / 3600
         

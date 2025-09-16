@@ -5,7 +5,7 @@ class Staff(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name =  db.Column(db.String(100), nullable=False, unique=True)
     password = db.Column(db.String(256), nullable=False)
-    scheduledShifts = db.relationship('Shift', backref="staff")
+    shifts = db.relationship('Shift', backref="staff")
     
     def __init__(self, name, password):
         self.name = name
@@ -15,7 +15,7 @@ class Staff(db.Model):
         return{
             'id': self.id,
             'name' : self.name,
-            'scheduledShifts' : [shift.get_json() for shift in self.scheduledShifts]
+            'shifts' : [shift.get_json() for shift in self.shifts]
         }
 
     def set_password(self, password):
