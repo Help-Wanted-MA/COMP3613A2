@@ -2,7 +2,7 @@ from .user import create_user
 from .admin import create_admin_user, scheduleShift
 from .staff import create_staff_user, timeShift
 from App.database import db
-from datetime import datetime
+from datetime import datetime, timedelta
 
 def initialize():
     db.drop_all()
@@ -13,29 +13,55 @@ def initialize():
     create_admin_user('Jimmy', 'jimmypass')
     create_admin_user('Bobby', 'bobbypass')
     
-    shift1 = scheduleShift(1, 1, "2025/09/15 08:00", "2025/09/15 09:00")
-    shift2= scheduleShift(1, 1, "2025/09/16 10:00", "2025/09/16 12:00")
+    # Dynamically allocate some shifts for the current real world week, and time in/out a few.
+    weekStart = datetime.now().date() - timedelta(days=datetime.now().date().weekday())
     
-    shift3 = scheduleShift(2, 1, "2025/09/15 11:00", "2025/09/15 12:00")
-    shift4 = scheduleShift(2, 2, "2025/09/16 16:00", "2025/09/16 17:00")
-    shift5 = scheduleShift(2, 1, "2025/09/17 17:00", "2025/09/17 18:00")
-    shift6 = scheduleShift(2, 2, "2025/09/18 20:00", "2025/09/18 21:00")
+    #scheduleShift(StaffID, AdminID, StartTime, EndTime)
+    shift1 = scheduleShift(1, 1, 
+                datetime.combine(weekStart, datetime.strptime("08:00", "%H:%M").time()),
+                datetime.combine(weekStart, datetime.strptime("09:00", "%H:%M").time())
+            )
     
-    timeShift(1, "in", datetime.strptime("2025/09/15 08:01", "%Y/%m/%d %H:%M"))
-    timeShift(1, "out", datetime.strptime("2025/09/15 08:55", "%Y/%m/%d %H:%M"))
+    shift2= scheduleShift(1, 1, 
+                datetime.combine(weekStart + timedelta(days=1), datetime.strptime("10:00", "%H:%M").time()),
+                datetime.combine(weekStart + timedelta(days=1), datetime.strptime("12:00", "%H:%M").time())
+            )
     
-    timeShift(2, "in", datetime.strptime("2025/09/16 10:11", "%Y/%m/%d %H:%M"))
-    timeShift(2, "out", datetime.strptime("2025/09/16 11:55", "%Y/%m/%d %H:%M"))
+    shift3 = scheduleShift(2, 1, 
+                datetime.combine(weekStart, datetime.strptime("11:00", "%H:%M").time()),
+                datetime.combine(weekStart, datetime.strptime("12:00", "%H:%M").time())
+            )
     
-    timeShift(3, "in", datetime.strptime("2025/09/15 11:01", "%Y/%m/%d %H:%M"))
-    timeShift(3, "out", datetime.strptime("2025/09/15 11:30", "%Y/%m/%d %H:%M"))
+    shift4 = scheduleShift(2, 2, 
+                datetime.combine(weekStart + timedelta(days=1), datetime.strptime("16:00", "%H:%M").time()),
+                datetime.combine(weekStart + timedelta(days=1), datetime.strptime("17:00", "%H:%M").time())
+            )
+    
+    shift5 = scheduleShift(2, 1, 
+                datetime.combine(weekStart + timedelta(days=2), datetime.strptime("17:00", "%H:%M").time()),
+                datetime.combine(weekStart + timedelta(days=2), datetime.strptime("18:00", "%H:%M").time())
+            )
+    
+    shift6 = scheduleShift(2, 2, 
+            datetime.combine(weekStart + timedelta(days=3), datetime.strptime("20:00", "%H:%M").time()),
+            datetime.combine(weekStart + timedelta(days=3), datetime.strptime("21:00", "%H:%M").time())
+            )
+    
+    timeShift(1, "in", datetime.combine(weekStart, datetime.strptime("08:01", "%H:%M").time()))
+    timeShift(1, "out", datetime.combine(weekStart, datetime.strptime("08:55", "%H:%M").time()))
 
-    # Shift 4 absent
-    
-    timeShift(5, "in", datetime.strptime("2025/09/17 17:01", "%Y/%m/%d %H:%M"))
-    timeShift(5, "out", datetime.strptime("2025/09/17 17:59", "%Y/%m/%d %H:%M"))
-    
-    timeShift(6, "in", datetime.strptime("2025/09/18 20:20", "%Y/%m/%d %H:%M"))
-    timeShift(6, "out", datetime.strptime("2025/09/18 20:58", "%Y/%m/%d %H:%M"))
+    timeShift(2, "in", datetime.combine(weekStart + timedelta(days=1), datetime.strptime("10:11", "%H:%M").time()))
+    timeShift(2, "out", datetime.combine(weekStart + timedelta(days=1), datetime.strptime("11:55", "%H:%M").time()))
+
+    timeShift(3, "in", datetime.combine(weekStart, datetime.strptime("11:01", "%H:%M").time()))
+    timeShift(3, "out", datetime.combine(weekStart, datetime.strptime("11:30", "%H:%M").time()))
+
+    # shift4 absent
+
+    timeShift(5, "in", datetime.combine(weekStart + timedelta(days=2), datetime.strptime("17:01", "%H:%M").time()))
+    timeShift(5, "out", datetime.combine(weekStart + timedelta(days=2), datetime.strptime("17:59", "%H:%M").time()))
+
+    timeShift(6, "in", datetime.combine(weekStart + timedelta(days=3), datetime.strptime("20:20", "%H:%M").time()))
+    timeShift(6, "out", datetime.combine(weekStart + timedelta(days=3), datetime.strptime("20:58", "%H:%M").time()))
     
     

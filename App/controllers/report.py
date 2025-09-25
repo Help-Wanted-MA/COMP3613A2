@@ -68,7 +68,7 @@ def generate_report_data():
     return data
         
      
-def create_report():
+def generate_report():
     roster = generate_roster()
     data = generate_report_data()
 

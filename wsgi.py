@@ -9,7 +9,7 @@ from App.controllers import (
     create_admin_user, scheduleShift, get_all_admins, get_all_admins_json, list_admins, get_admin,
     create_staff_user, timeShift, get_all_staff, get_all_staff_json, list_staff, get_staff,
     get_shift_info, is_shift_timed_in, pretty_print_shift_json,
-    generate_roster, generate_report_data, create_report, get_report, get_all_reports, pretty_print_report_json, list_reports)
+    generate_roster, generate_report_data, generate_report, get_report, get_all_reports, pretty_print_report_json, list_reports)
 
 
 # This commands file allow you to create convenient CLI commands for testing controllers
@@ -86,11 +86,10 @@ def list_staff_command():
 def view_staff_command():
     view_staff()
      
-@staff_cli.command("view_roster", help="View the combined staff roster")
+@staff_cli.command("view_roster", help="View the combined staff roster for this week")
 def view_roster_command():
     roster = generate_roster()
-    print(roster)
-    str = 'Shifts for each staff member:\n'
+    str = 'Shifts for each staff member this week:\n'
     for staff in roster:
         str += f'\n{staff}:\n'
         for shift in roster[staff]:
@@ -134,7 +133,6 @@ def view_admin():
         print("Could not find admin user for given id")
     else:
         data = admin.get_json()
-        print(data)
         shifts = data["createdShifts"]
         str = ''
         for shift in shifts:
@@ -163,7 +161,7 @@ def create_admin_command(name, password):
     if not admin:
         print("Error creating admin user")
     else:
-        print(f'Staff user {admin.name} successfully created!')
+        print(f'Admin user {admin.name} successfully created!')
 
 @admin_cli.command("schedule_shift", help='Schedules a shift for a staff user.')
 def schedule_shift_command():
@@ -184,13 +182,13 @@ def schedule_shift_command():
     else:
         print(f'Shift scheduled! Details:\n{pretty_print_shift_json(shift.get_json())}')
 
-@admin_cli.command("create_report", help="Generates a report")
-def create_report_command():
-    report = create_report()
+@admin_cli.command("generate_report", help="Generates a report")
+def generate_report_command():
+    report = generate_report()
     if not report:
-        print("Error creating report")
+        print("Error generating report")
     else:
-        print(f'Report created!\n\n {pretty_print_report_json(report.get_json())}')
+        print(f'Report generated!\n\n {pretty_print_report_json(report.get_json())}')
     
 @admin_cli.command("view_report", help="View a report from a list of reports")
 def view_report_command():

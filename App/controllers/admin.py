@@ -8,18 +8,19 @@ def create_admin_user(name, password):
     db.session.commit()
     return newadmin
 
-def scheduleShift(staffId, adminId, startTimeStr, endTimeStr):
+def scheduleShift(staffId, adminId, startTime, endTime):
     staffUser = Staff.query.get(staffId)
     if not staffUser:
         print("Staff user not found for given ID!")
         return None
     
-    try:
-        startTime = datetime.strptime(startTimeStr, "%Y/%m/%d %H:%M")
-        endTime = datetime.strptime(endTimeStr, "%Y/%m/%d %H:%M")
-    except ValueError:
-        print("Invalid time format. Please use (YYYY/MM/DD HH:MM)")
-        return None
+    if isinstance(startTime, str) and isinstance(endTime, str):
+        try:
+            startTime = datetime.strptime(startTime, "%Y/%m/%d %H:%M")
+            endTime = datetime.strptime(endTime, "%Y/%m/%d %H:%M")
+        except ValueError:
+            print("Invalid time format. Please use (YYYY/MM/DD HH:MM)")
+            return None
     
     newShift = Shift(staffId=staffId, adminId=adminId, startTime=startTime, endTime=endTime)
     if not newShift:
