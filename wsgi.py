@@ -8,7 +8,7 @@ from App.controllers import (
     create_user, get_all_users_json, get_all_users, initialize,
     create_admin_user, scheduleShift, get_all_admins, get_all_admins_json, list_admins, get_admin,
     create_staff_user, timeShift, get_all_staff, get_all_staff_json, list_staff, get_staff,
-    get_shift_info, is_shift_timed_in, pretty_print_shift_json,
+    get_shift_info, is_shift_timed_in, pretty_print_shift_json, get_shift, reschedule_shift,
     generate_roster, generate_report_data, generate_report, get_report, get_all_reports, pretty_print_report_json, list_reports)
 
 
@@ -64,6 +64,7 @@ def view_staff():
     staff = get_staff(staffId)
     if not staff:
         print("Could not find staff user for given id")
+        return
     else:
         data = staff.get_json()
         shifts = data["shifts"]
@@ -75,6 +76,7 @@ def view_staff():
               StaffID: {data["id"]}
               Name: {data["name"]}
               shifts: {str}''')
+    return staffId
         
 staff_cli = AppGroup('staff', help='Staff object commands') 
 
@@ -204,7 +206,34 @@ def view_report_command():
     else:
         print(f'{pretty_print_report_json(report.get_json())}')
 
+@admin_cli.command("view_staff", help="View a staff user's details from a list of users")
+def view_staff_admin_command():
+    view_staff()
 
+@admin_cli.command("reschedule_shift", help="Reschedule a staff user's shift")
+def reschedule_shift_command():
+    staffId = view_staff()
+    if not staffId:
+        return
+    
+    shiftId = click.prompt(f'Enter a shift ID to reschedule: ', type=int)
+    shift = get_shift(shiftId)
+    if not shift:
+        print("Could not find shift")
+        return
+    if staffId != shift.staffId:
+        print("Shift does not belong to this staff user")
+        return
+    
+    startTime = click.prompt("Enter the new start time of the shift(YYYY/MM/DD HH:MM): ")
+    endTime = click.prompt("Enter the new end time of the shift(YYYY/MM/DD HH:MM): ")
+    result = reschedule_shift(shiftId, startTime, endTime)
+    if result:
+        print("Successfully rescheduled shift")
+    else:
+        print("Failed to reschedule shift")
+
+    
 app.cli.add_command(admin_cli) # add the group to the cli
 
 

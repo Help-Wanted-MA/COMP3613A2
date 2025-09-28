@@ -1,4 +1,4 @@
-from App.models import Admin, Staff, Shift, Report
+from App.models import Staff, Shift, Report
 from App.database import db
 from datetime import datetime, timedelta
 
@@ -20,7 +20,7 @@ def generate_roster():
 def generate_report_data():
     today = datetime.now().date()
     weekStart = today - timedelta(days=today.weekday())
-    weekEnd = weekStart + timedelta(days=6)
+    weekEnd = weekStart + timedelta(days=7)
 
     allStaff = Staff.query.all()
     data = {}

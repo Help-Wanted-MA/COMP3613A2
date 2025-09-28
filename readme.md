@@ -56,9 +56,19 @@ View an admin user's details(including shifts they created) by selecting from a 
 flask admin view
 ```
 
+View a staff user's details by selecting from a list.
+```
+flask admin view_staff
+```
+
 Schedule a shift for a staff user, by first selecting the admin who is scheduling the shift, then selecting the staff for whom to schedule the shift for, then entering a start time and end time for the shift in "YYYY/MM/DD HH:MM" format
 ```
 flask admin schedule_shift
+```
+
+Reschedule a shift by first selecting a staff user, then selecting one of their shifts, then entering a new start time and end time.
+```
+flask admin reschedule_shift
 ```
 
 Generate a shift report for the week
