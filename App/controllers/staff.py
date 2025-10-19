@@ -1,9 +1,16 @@
 from App.models import Staff, Shift
 from App.database import db
+from App.exceptions.exceptions import NotFoundError, ValidationError, ConflictError, InternalError
 from datetime import datetime
 
-def create_staff_user(name, password):
-    newstaff = Staff(name=name, password=password)
+def create_staff_user(username, password):
+    if not username or not password:
+        raise ValidationError("Missing username or password")
+        
+    if get_staff_by_name(username) is not None:
+        raise ConflictError("User already exists")
+        
+    newstaff = Staff(name=username, password=password)
     db.session.add(newstaff)
     db.session.commit()
     return newstaff
@@ -11,14 +18,14 @@ def create_staff_user(name, password):
 def timeShift(shiftId, type, time=None):
     shift = Shift.query.get(shiftId)
     if not shift:
-        return {"success": False, "error": "Shift not found"}, 404
+        raise NotFoundError(f'Shift {shiftId} not found')
 
     if not time: 
         time = datetime.now()
         
     if type == "in":
         if shift.timedIn is not None:
-            return {"success": False, "error": "Already timed in this shift"}, 400
+            raise ConflictError("Already timed in this shift")
         
         shift.timedIn = time
         delta = time - shift.startTime
@@ -30,7 +37,7 @@ def timeShift(shiftId, type, time=None):
         
     elif type == "out":
         if shift.timedOut is not None:
-            return {"success": False, "error": "Already timed out this shift"}, 400
+            raise ConflictError("Already timed in this shift")
         
         shift.timedOut = time
         delta = shift.endTime - time
@@ -41,13 +48,10 @@ def timeShift(shiftId, type, time=None):
             
         db.session.add(shift)
         db.session.commit()
-        return {
-            "success": True,
-            "shift_id": shiftId,
-            "type": type,
-            "time": time.isoformat(),
-            "attendance": shift.attendance
-        }, 200
+    else:
+        raise ValidationError("Invalid type. Must be 'in' or 'out'")
+    
+    return shift
 
 def get_shifts(staffId):
     staff = Staff.query.get(staffId)
@@ -82,7 +86,11 @@ def get_staff_by_name(name):
     return result.scalar_one_or_none()
 
 def get_staff(id):
-    return db.session.get(Staff, id)
+    staff = db.session.get(Staff, id)
+    if not staff:
+        raise NotFoundError(f"Staff not found with ID: {id}")
+    return staff
+    
 
 def get_all_staff():
     return db.session.scalars(db.select(Staff)).all()
@@ -96,7 +104,13 @@ def get_all_staff_json():
  
 def delete_staff(id):
     staff = Staff.query.get(id)
-    if not staff: return {"error": f"Admin with ID:{id} not found"}, 404
-    db.session.delete(staff)
-    db.session.commit()
-    return {"success": f"Staff with ID:{id} successfully deleted"}, 204
+    if not staff: 
+        raise NotFoundError(f"Admin with ID:{id} not found")
+
+    try:
+        db.session.delete(staff)
+        db.session.commit()
+        return True
+    except Exception as e:
+        print(e)
+        raise InternalError

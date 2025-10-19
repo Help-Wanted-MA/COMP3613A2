@@ -17,13 +17,6 @@ class Shift(db.Model):
         self.startTime = startTime
         self.endTime = endTime
 
-    def reschedule(self, startTime, endTime):
-        self.startTime = startTime
-        self.endTime = endTime
-        self.timedIn = None
-        self.timedOut = None
-        self.attendance = "Pending"
-        
     def getExpectedHours(self):
         if not self.startTime or not self.endTime:
             return None

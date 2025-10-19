@@ -1,9 +1,10 @@
 from App.models import Staff, Shift, Report
 from App.database import db
+from App.exceptions.exceptions import ConflictError, InternalError, NotFoundError, ValidationError
 from datetime import datetime, timedelta
 
-def generate_roster():
-    today = datetime.now().date()
+def generate_roster(week):
+    today = datetime.now().date() 
     weekStart = today - timedelta(days=today.weekday())
     weekEnd = weekStart + timedelta(days=6)
     
@@ -72,9 +73,14 @@ def generate_report():
     roster = generate_roster()
     data = generate_report_data()
 
-    newReport = Report(roster=roster, data=data)
-    db.session.add(newReport)
-    db.session.commit()
+    try:
+        newReport = Report(roster=roster, data=data)
+        db.session.add(newReport)
+        db.session.commit()
+    except Exception as e:
+        print(e)
+        raise InternalError
+    
     return newReport
 
 def list_reports_json():
@@ -119,14 +125,24 @@ def pretty_print_report_json(report):
     return str
     
 def get_report(id):
-    return db.session.get(Report, id)
+    report = db.session.get(Report, id)
+    if not report:
+        raise NotFoundError(f'Report with ID: {id} not found')
+    
+    return report
 
 def delete_report(id):
     report = Report.query.get(id)
-    if not report: return None
-    db.session.delete(report)
-    db.session.commit()
-    return True
+    if not report: 
+        raise NotFoundError(f"Report with ID:{id} not found")
+    
+    try:
+        db.session.delete(report)
+        db.session.commit()
+        return True
+    except Exception as e:
+        print(e)
+        raise InternalError
     
 def get_all_reports():
     return db.session.scalars(db.select(Report)).all()

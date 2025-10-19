@@ -1,7 +1,7 @@
 from App.models import Shift
 from App.database import db
 from datetime import datetime
-
+from App.exceptions.exceptions import ConflictError, InternalError, NotFoundError, ValidationError
 def get_shift_info(id):
     shift = Shift.query.get(id)
     if not shift:
@@ -23,10 +23,16 @@ def is_shift_timed_in(id):
     
 def delete_shift(id):
     shift = Shift.query.get(id)
-    if not shift: return None
-    db.session.delete(shift)
-    db.session.commit()
-    return True
+    if not shift: 
+        raise NotFoundError(f"Admin with ID:{id} not found")
+    
+    try:
+        db.session.delete(shift)
+        db.session.commit()
+        return True
+    except Exception as e:
+        print(e)
+        raise InternalError
     
 def pretty_print_shift_json(shift):
     str = f'''
