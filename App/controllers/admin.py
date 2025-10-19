@@ -11,25 +11,29 @@ def create_admin_user(name, password):
 def scheduleShift(staffId, adminId, startTime, endTime):
     staffUser = Staff.query.get(staffId)
     if not staffUser:
-        print("Staff user not found for given ID!")
-        return None
+        return {"success": False, "error": "Staff user not found"}, 404
     
     if isinstance(startTime, str) and isinstance(endTime, str):
         try:
             startTime = datetime.strptime(startTime, "%Y/%m/%d %H:%M")
             endTime = datetime.strptime(endTime, "%Y/%m/%d %H:%M")
         except ValueError:
-            print("Invalid time format. Please use (YYYY/MM/DD HH:MM)")
-            return None
+            return {"success": False, "error": "Invalid time format. Please use (YYYY/MM/DD HH:MM)"}, 400
     
     newShift = Shift(staffId=staffId, adminId=adminId, startTime=startTime, endTime=endTime)
     if not newShift:
-        print("Error creating new shift")
-        return None
+        return {"success": False, "error": "Error creating new shift"}, 500
     
     db.session.add(newShift)
     db.session.commit()
-    return newShift
+    return {
+        "success": True,
+        "staffId": newShift.staffId,
+        "adminId": newShift.adminId,
+        "shiftId": newShift.id,
+        "startTime": datetime.strptime(startTime, "%Y/%m/%d %H:%M"),
+        "endTime": datetime.strptime(endTime, "%Y/%m/%d %H:%M"),   
+    }, 201
     
     
 
@@ -60,6 +64,7 @@ def get_all_admins_json():
 
 def delete_admin(id):
     admin = Admin.query.get(id)
-    if not admin: return None
+    if not admin: return {"error": f"Admin with ID:{id} not found"}, 404
     db.session.delete(admin)
     db.session.commit()
+    return {"success": f"Admin with ID:{id} successfully deleted"}, 204

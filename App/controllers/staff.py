@@ -11,14 +11,14 @@ def create_staff_user(name, password):
 def timeShift(shiftId, type, time=None):
     shift = Shift.query.get(shiftId)
     if not shift:
-        return "Shift not found"
-    
+        return {"success": False, "error": "Shift not found"}, 404
+
     if not time: 
         time = datetime.now()
         
     if type == "in":
         if shift.timedIn is not None:
-            return "Already timed in this shift"
+            return {"success": False, "error": "Already timed in this shift"}, 400
         
         shift.timedIn = time
         delta = time - shift.startTime
@@ -27,11 +27,10 @@ def timeShift(shiftId, type, time=None):
             
         db.session.add(shift)
         db.session.commit()
-        return f'Timed in at {time.strftime("%Y/%m/%d %H:%M")} for shiftID: {shiftId}'
         
     elif type == "out":
         if shift.timedOut is not None:
-            return "Already timed out this shift"
+            return {"success": False, "error": "Already timed out this shift"}, 400
         
         shift.timedOut = time
         delta = shift.endTime - time
@@ -42,7 +41,13 @@ def timeShift(shiftId, type, time=None):
             
         db.session.add(shift)
         db.session.commit()
-        return f'Timed out at {time.strftime("%Y/%m/%d %H:%M")} for shiftID: {shiftId}'
+        return {
+            "success": True,
+            "shift_id": shiftId,
+            "type": type,
+            "time": time.isoformat(),
+            "attendance": shift.attendance
+        }, 200
 
 def get_shifts(staffId):
     staff = Staff.query.get(staffId)
@@ -62,6 +67,16 @@ def list_staff():
         
     return str
 
+def list_staff_json():
+    allStaff = Staff.query.all()
+    staffList = []
+    for staff in allStaff:
+        staffList.append({
+            "id": staff.id,
+            "name": staff.name
+        })
+    return staffList
+
 def get_staff_by_name(name):
     result = db.session.execute(db.select(Staff).filter_by(name=name))
     return result.scalar_one_or_none()
@@ -78,9 +93,10 @@ def get_all_staff_json():
         return []
     staffUsers = [staff.get_json() for staff in staffUsers]
     return staffUsers
-
+ 
 def delete_staff(id):
     staff = Staff.query.get(id)
-    if not staff: return None
+    if not staff: return {"error": f"Admin with ID:{id} not found"}, 404
     db.session.delete(staff)
     db.session.commit()
+    return {"success": f"Staff with ID:{id} successfully deleted"}, 204

@@ -77,6 +77,17 @@ def generate_report():
     db.session.commit()
     return newReport
 
+def list_reports_json():
+    allReports = Report.query.all()
+    data = []
+    for report in allReports:
+        data.append({
+            "reportId": report.id,
+            "dateGenerated": report.dateGenerated
+        })
+        
+    return data
+
 def list_reports():
     allReports = Report.query.all()
     str = ""
@@ -115,6 +126,7 @@ def delete_report(id):
     if not report: return None
     db.session.delete(report)
     db.session.commit()
+    return True
     
 def get_all_reports():
     return db.session.scalars(db.select(Report)).all()

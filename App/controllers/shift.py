@@ -26,6 +26,7 @@ def delete_shift(id):
     if not shift: return None
     db.session.delete(shift)
     db.session.commit()
+    return True
     
 def pretty_print_shift_json(shift):
     str = f'''
@@ -44,22 +45,25 @@ def get_shift(id):
 def reschedule_shift(id, startTime, endTime):
     shift = get_shift(id)
     if not shift:
-        return False
+        return {"success": False, "error": "Shift not found"}, 404
     
     if isinstance(startTime, str) and isinstance(endTime, str):
         try:
             startTime = datetime.strptime(startTime, "%Y/%m/%d %H:%M")
             endTime = datetime.strptime(endTime, "%Y/%m/%d %H:%M")
         except ValueError:
-            print("Invalid time format. Please use (YYYY/MM/DD HH:MM)")
-            return False
+            return {"success": False, "error": "Invalid time format. Please use (YYYY/MM/DD HH:MM)"}, 400
         
     try:
         shift.reschedule(startTime, endTime)
         db.session.add(shift)
         db.session.commit()
-        return True
+        return {
+            "success": True, 
+            "startTime": datetime.strptime(startTime, "%Y/%m/%d %H:%M"),
+            "endTime": datetime.strptime(endTime, "%Y/%m/%d %H:%M")
+        }, 201
+        
     except Exception as e:
-        print(f'Error rescheduling shift: Database error - {e}')
-        return False
+        return {"success": False, "error": "Internal server error"}, 500
     
