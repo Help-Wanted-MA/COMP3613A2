@@ -7,7 +7,7 @@ def create_admin_user(username, password):
     if not username or not password:
         raise ValidationError("Username or password missing")
         
-    if get_admin_by_name(username) is not None:
+    if Admin.query.filter_by(name=username).first() is not None:
         raise ConflictError("User already exists")
         
     newadmin = Admin(name=username, password=password)
@@ -38,14 +38,6 @@ def scheduleShift(staffId, adminId, startTime, endTime):
     db.session.commit()
     return newShift
 
-def list_admins():
-    allAdmins = Admin.query.all()
-    str = ""
-    for admin in allAdmins:
-        str += f'ID: {admin.id}, Name: {admin.name}\n'
-        
-    return str
-
 def list_admins_json():
     allAdmins = Admin.query.all()
     adminList = []
@@ -58,7 +50,10 @@ def list_admins_json():
 
 def get_admin_by_name(name):
     result = db.session.execute(db.select(Admin).filter_by(name=name))
-    return result.scalar_one_or_none()
+    admin = result.scalar_one_or_none()
+    if not admin:
+        raise NotFoundError(f"Admin with name '{name}' not found")
+    return admin
 
 def get_admin(id):
     admin = db.session.get(Admin, id)
@@ -68,13 +63,6 @@ def get_admin(id):
 
 def get_all_admins():
     return db.session.scalars(db.select(Admin)).all()
-
-def get_all_admins_json():
-    adminUsers = get_all_admins()
-    if not adminUsers:
-        return []
-    adminUsers = [admin.get_json() for admin in adminUsers]
-    return adminUsers
 
 def delete_admin(id):
     admin = Admin.query.get(id)

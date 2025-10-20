@@ -7,7 +7,7 @@ def create_staff_user(username, password):
     if not username or not password:
         raise ValidationError("Missing username or password")
         
-    if get_staff_by_name(username) is not None:
+    if Staff.query.filter_by(name=username).first() is not None:
         raise ConflictError("User already exists")
         
     newstaff = Staff(name=username, password=password)
@@ -55,21 +55,14 @@ def timeShift(shiftId, type, time=None):
 
 def get_shifts(staffId):
     staff = Staff.query.get(staffId)
-    if not staff: return None
+    if not staff:
+        raise NotFoundError(f"Staff with ID: {staffId} not found")
     
     shifts = ""
     for shift in staff.shifts:
         shifts += f'ID: {shift.Id}, {shift.startTime.strftime("%Y/%m/%d - %H:%M")} to {shift.endTime.strftime("%Y/%m/%d - %H:%M")}\n'
         
     return shifts
-    
-def list_staff():
-    allStaff = Staff.query.all()
-    str = ""
-    for staff in allStaff:
-        str += f'ID: {staff.id}, Name: {staff.name}\n'
-        
-    return str
 
 def list_staff_json():
     allStaff = Staff.query.all()
@@ -83,24 +76,19 @@ def list_staff_json():
 
 def get_staff_by_name(name):
     result = db.session.execute(db.select(Staff).filter_by(name=name))
-    return result.scalar_one_or_none()
+    staff = result.scalar_one_or_none()
+    if not staff:
+        raise NotFoundError(f"Staff with name: {name} not found")
+    return staff
 
 def get_staff(id):
     staff = db.session.get(Staff, id)
     if not staff:
         raise NotFoundError(f"Staff not found with ID: {id}")
     return staff
-    
 
 def get_all_staff():
     return db.session.scalars(db.select(Staff)).all()
-
-def get_all_staff_json():
-    staffUsers = get_all_staff()
-    if not staffUsers:
-        return []
-    staffUsers = [staff.get_json() for staff in staffUsers]
-    return staffUsers
  
 def delete_staff(id):
     staff = Staff.query.get(id)

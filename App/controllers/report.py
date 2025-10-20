@@ -3,16 +3,25 @@ from App.database import db
 from App.exceptions.exceptions import ConflictError, InternalError, NotFoundError, ValidationError
 from datetime import datetime, timedelta
 
-def generate_roster(week):
-    today = datetime.now().date() 
-    weekStart = today - timedelta(days=today.weekday())
-    weekEnd = weekStart + timedelta(days=6)
+#Generate a roster for the week containing `reference_date`. If no date is provided, defaults to the current week
+def generate_roster(referenceDate=None):
+    if referenceDate is None:
+        referenceDate = datetime.now().date()
+    elif isinstance(referenceDate, str):
+        referenceDate = datetime.strptime(referenceDate, "%Y/%m/%d").date()
+        
+    weekStart = referenceDate - timedelta(days=referenceDate.weekday())
+    weekEnd = weekStart + timedelta(days=5)
     
     allStaff = Staff.query.all()
     roster = {}
     
     for staff in allStaff:
-        shifts = Shift.query.filter(Shift.staffId == staff.id, Shift.startTime >= weekStart, Shift.startTime <= weekEnd).all()
+        shifts = Shift.query.filter(
+            Shift.staffId == staff.id, 
+            Shift.startTime >= weekStart, 
+            Shift.startTime <= weekEnd
+        ).all()
         
         roster[staff.name] = [f'{shift.startTime.strftime("%Y/%m/%d %H:%M")} - {shift.endTime.strftime("%Y/%m/%d %H:%M")}' for shift in shifts]
         
@@ -93,36 +102,6 @@ def list_reports_json():
         })
         
     return data
-
-def list_reports():
-    allReports = Report.query.all()
-    str = ""
-    for report in allReports:
-        str += f'Report ID: {report.id} | Generated on: {report.dateGenerated}\n'
-        
-    return str
-
-def pretty_print_report_json(report):
-    str = f'''
-        ReportID: {report["id"]}
-        Date Generated: {report["dateGenerated"]}
-    '''
-    
-    for staffName, data in report["data"].items():
-        str += f'''
-        -----------------------------------------
-            Name: {staffName}
-            Total Shifts: {data["totalShifts"]},
-            Total Expected Hours: {data["totalExpectedHours"]},
-            Total Worked Hours: {data["totalWorkedHours"]:.2f},
-            On Time: {data["onTime"]},
-            Late Time Ins: {data["lateTimeIns"]},
-            Early Time Outs: {data["earlyTimeOuts"]},
-            Absent: {data["absents"]},
-            shiftIds: {data["shiftIds"]}
-        -----------------------------------------
-        '''
-    return str
     
 def get_report(id):
     report = db.session.get(Report, id)

@@ -5,11 +5,9 @@ from.index import index_views
 
 from App.exceptions.handlers import register_error_handlers
 from App.controllers import ( 
-    create_user, get_all_users_json, get_all_users, initialize, jwt_required, get_user_by_username, role_required, 
-    create_admin_user, scheduleShift, get_all_admins, get_all_admins_json, list_admins, list_admins_json, get_admin, delete_admin,
-    create_staff_user, timeShift, get_all_staff, get_all_staff_json, list_staff, get_staff, get_staff_by_name, list_staff_json, delete_staff,
-    get_shift_info, is_shift_timed_in, pretty_print_shift_json, get_shift, reschedule_shift, delete_shift,
-    generate_roster, generate_report_data, generate_report, get_report, get_all_reports, pretty_print_report_json, list_reports, delete_report)
+   role_required, create_admin_user, scheduleShift, list_admins_json, get_admin, delete_admin,
+   delete_staff,delete_shift,generate_report, get_report, list_reports_json, delete_report
+)
 
 admin_user_views = Blueprint('admin_user_views', __name__, template_folder='../templates')
 register_error_handlers(admin_user_views)
@@ -88,7 +86,7 @@ def generate_report_route():
 @admin_user_views.route("/report", methods=["GET"])
 @role_required("admin")
 def list_reports_route():
-    reports = list_reports()
+    reports = list_reports_json()
     return jsonify(reports), 200
     
 @admin_user_views.route("/report/<int:id>", methods=["GET"])

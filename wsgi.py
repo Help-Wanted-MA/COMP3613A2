@@ -5,11 +5,10 @@ from App.database import db, get_migrate
 from App.models import User, Staff, Admin, Shift, Report
 from App.main import create_app
 from App.controllers import ( 
-    create_user, get_all_users_json, get_all_users, initialize,
-    create_admin_user, scheduleShift, get_all_admins, get_all_admins_json, list_admins, get_admin,
-    create_staff_user, timeShift, get_all_staff, get_all_staff_json, list_staff, get_staff,
-    get_shift_info, is_shift_timed_in, pretty_print_shift_json, get_shift, reschedule_shift,
-    generate_roster, generate_report_data, generate_report, get_report, get_all_reports, pretty_print_report_json, list_reports)
+    initialize, create_admin_user, scheduleShift, get_admin, delete_admin,
+    delete_staff, delete_shift, generate_report, get_report, list_reports_json, delete_report,
+    create_staff_user, timeShift, get_staff, generate_roster, get_all_staff, get_all_admins, get_shift
+)
 
 
 # This commands file allow you to create convenient CLI commands for testing controllers
@@ -32,65 +31,89 @@ User Commands
 
 # create a group, it would be the first argument of the comand
 # eg : flask user <command>
-user_cli = AppGroup('user', help='User object commands') 
+'''
+Helper Commands
+'''
+def pretty_print_report_json(report):
+    str = f'''
+        ReportID: {report["id"]}
+        Date Generated: {report["dateGenerated"]}
+    '''
+    
+    for staffName, data in report["data"].items():
+        str += f'''
+        -----------------------------------------
+            Name: {staffName}
+            Total Shifts: {data["totalShifts"]},
+            Total Expected Hours: {data["totalExpectedHours"]},
+            Total Worked Hours: {data["totalWorkedHours"]:.2f},
+            On Time: {data["onTime"]},
+            Late Time Ins: {data["lateTimeIns"]},
+            Early Time Outs: {data["earlyTimeOuts"]},
+            Absent: {data["absents"]},
+            shiftIds: {data["shiftIds"]}
+        -----------------------------------------
+        '''
+    return str
 
-# Then define the command and any parameters and annotate it with the group (@)
-@user_cli.command("create", help="Creates a user")
-@click.argument("username", default="rob")
-@click.argument("password", default="robpass")
-def create_user_command(username, password):
-    create_user(username, password)
-    print(f'{username} created!')
+def pretty_print_shift_json(shift):
+    str = f'''
+        ShiftID: {shift["id"]}
+        Start time: {shift["startTime"]}
+        End time: {shift["endTime"]}
+        Timed in: {shift["timedIn"]}
+        Timed out: {shift["timedOut"]}
+        Attendance: {shift["attendance"]}
+    '''
+    return str
 
-# this command will be : flask user create bob bobpass
 
-@user_cli.command("list", help="Lists users in the database")
-@click.argument("format", default="string")
-def list_user_command(format):
-    if format == 'string':
-        print(get_all_users())
-    else:
-        print(get_all_users_json())
 
-app.cli.add_command(user_cli) # add the group to the cli
 
 '''
 Staff Commands
 '''
 def view_staff():
-    print(list_staff())
+    allStaff = get_all_staff()
+    for staff in allStaff:
+        print(f"Staff ID: {staff.id} | Staff Name: {staff.name}")
+        
     staffId = click.prompt("Enter a staff id: ", type=int)
     
-    staff = get_staff(staffId)
-    if not staff:
-        print("Could not find staff user for given id")
+    try:
+        staff = get_staff(staffId)
+    except Exception as e:
+        print(e)
         return
-    else:
-        data = staff.get_json()
-        shifts = data["shifts"]
-        str = ''
-        for shift in shifts:
-            str += pretty_print_shift_json(shift)
-            
-        print(f'''
-              StaffID: {data["id"]}
-              Name: {data["name"]}
-              shifts: {str}''')
+
+    data = staff.get_json()
+    shifts = data["shifts"]
+    str = ''
+    for shift in shifts:
+        str += pretty_print_shift_json(shift)
+        
+    print(f'''
+          StaffID: {data["id"]}
+          Name: {data["name"]}
+          shifts: {str}''')
     return staffId
         
 staff_cli = AppGroup('staff', help='Staff object commands') 
 
 @staff_cli.command("list", help="Lists all staff users")
 def list_staff_command():
-    print(list_staff())
+    allStaff = get_all_staff()
+    for staff in allStaff:
+        print(f"Staff ID: {staff.id} | Staff Name: {staff.name}")
    
 @staff_cli.command("view", help="View a staff user's details from a list of users")
 def view_staff_command():
     view_staff()
      
 @staff_cli.command("view_roster", help="View the combined staff roster for this week")
-def view_roster_command():
-    roster = generate_roster()
+@click.option("--date", "-d", default=None, help="Reference date for the week (format: YYYY/MM/DD)")
+def view_roster_command(date):
+    roster = generate_roster(date)
     str = 'Shifts for each staff member this week:\n'
     for staff in roster:
         str += f'\n{staff}:\n'
@@ -103,21 +126,27 @@ def view_roster_command():
 @click.argument('name', default="tom")
 @click.argument('password', default="tompass")
 def create_staff_command(name, password):
-    staff = create_staff_user(name, password)
-    if not staff:
-        print("Error creating staff user")
-    else:
+    try:
+        staff = create_staff_user(name, password)
         print(f'Staff user {staff.name} successfully created!')
-        
-        
+    except Exception as e:
+        print(e)
+           
 @staff_cli.command("time_shift", help="Time in/out of a shift")
 @click.argument("type", type=click.Choice(["in", "out"], case_sensitive=False))
 def time_shift_command(type):
     view_staff()
     
     shiftId = click.prompt(f'Enter a shift ID to time {type}: ', type=int)
-    string = timeShift(shiftId, type)
-    print(string)
+    try:
+        shift = timeShift(shiftId, type)
+        if type == "in":
+            print(f"Time {type} shift {shift.id} at {shift.timedIn.isoformat()}")
+        elif type == "out":
+            print(f"Time {type} shift {shift.id} at {shift.timedOut.isoformat()}")
+    except Exception as e:
+        print(e)
+
 
 app.cli.add_command(staff_cli) # add the group to the cli
 
@@ -127,13 +156,14 @@ app.cli.add_command(staff_cli) # add the group to the cli
 Admin Commands
 '''
 def view_admin():
-    print(list_admins())
+    allAdmins = get_all_admins()
+    for admin in allAdmins:
+        print (f"Admin ID: {admin.id} | Admin name: {admin.name}")
+        
     adminId = click.prompt("Enter an admin number: ", type=int)
     
-    admin = get_admin(adminId)
-    if not admin:
-        print("Could not find admin user for given id")
-    else:
+    try:
+        admin = get_admin(adminId)
         data = admin.get_json()
         shifts = data["createdShifts"]
         str = ''
@@ -144,12 +174,17 @@ def view_admin():
               AdminID: {data["id"]}
               Name: {data["name"]}
               CreatedShifts: {str}''')
+    except Exception as e:
+        print(e)
+        
         
 admin_cli = AppGroup('admin', help='Admin object commands') 
 
 @admin_cli.command("list", help="Lists all admin users")
 def list_admin_command():
-    print(list_admins())
+    allAdmins = get_all_admins()
+    for admin in allAdmins:
+        print (f"Admin ID: {admin.id} | Admin name: {admin.name}")
     
 @admin_cli.command("view", help="View an admin user's details from a list of admins")
 def list_admin_command():
@@ -159,80 +194,63 @@ def list_admin_command():
 @click.argument('name', default="john")
 @click.argument('password', default="johnpass")
 def create_admin_command(name, password):
-    admin = create_admin_user(name, password)
-    if not admin:
-        print("Error creating admin user")
-    else:
+    try:
+        admin = create_admin_user(name, password)
         print(f'Admin user {admin.name} successfully created!')
+    except Exception as e:
+        print(e)
+        
 
 @admin_cli.command("schedule_shift", help='Schedules a shift for a staff user.')
 def schedule_shift_command():
     print("ADMINS:")
-    print(list_admins())
+    allAdmins = get_all_admins()
+    for admin in allAdmins:
+        print (f"Admin ID: {admin.id} | Admin name: {admin.name}")
     adminId = click.prompt("Enter the ID of the admin who is creating this shift: ", type=int)
     
-    print("STAFF")
-    print(list_staff())
+    print("STAFF:")
+    allStaff = get_all_staff()
+    for staff in allStaff:
+        print(f"Staff ID: {staff.id} | Staff Name: {staff.name}")
     staffId = click.prompt("Enter the ID of the staff to create the shift for: ", type=int)
     
     startTime = click.prompt("Enter the start time of the shift(YYYY/MM/DD HH:MM): ")
     endTime = click.prompt("Enter the end time of the shift(YYYY/MM/DD HH:MM): ")
-    shift = scheduleShift(staffId, adminId, startTime, endTime)
-    if not shift:
-        print("Error scheduling shift")
-        return
-    else:
+    try:
+        shift = scheduleShift(staffId, adminId, startTime, endTime)
         print(f'Shift scheduled! Details:\n{pretty_print_shift_json(shift.get_json())}')
+    except Exception as e:
+        print(e)
+        
 
 @admin_cli.command("generate_report", help="Generates a report")
 def generate_report_command():
-    report = generate_report()
-    if not report:
-        print("Error generating report")
-    else:
+    try:
+        report = generate_report()
         print(f'Report generated!\n\n {pretty_print_report_json(report.get_json())}')
+    except Exception as e:
+        print(e)
+        
     
 @admin_cli.command("view_report", help="View a report from a list of reports")
 def view_report_command():
     print("------------------REPORTS------------------")
-    reports = list_reports()
-    print(reports)
+    reports = list_reports_json()
+    for report in reports:
+        print(f"Report ID: {report['reportId']} | Generated on: {report['dateGenerated']}")
     reportId = click.prompt("Enter a report ID: ", type=int)
     
-    report = get_report(reportId)
-    if not report:
-        print("Could not find report")
-        return
-    else:
+    try:
+        report = get_report(reportId)
         print(f'{pretty_print_report_json(report.get_json())}')
+    except Exception as e:
+        print(e)
+        
 
 @admin_cli.command("view_staff", help="View a staff user's details from a list of users")
 def view_staff_admin_command():
     view_staff()
-
-@admin_cli.command("reschedule_shift", help="Reschedule a staff user's shift")
-def reschedule_shift_command():
-    staffId = view_staff()
-    if not staffId:
-        return
-    
-    shiftId = click.prompt(f'Enter a shift ID to reschedule: ', type=int)
-    shift = get_shift(shiftId)
-    if not shift:
-        print("Could not find shift")
-        return
-    if staffId != shift.staffId:
-        print("Shift does not belong to this staff user")
-        return
-    
-    startTime = click.prompt("Enter the new start time of the shift(YYYY/MM/DD HH:MM): ")
-    endTime = click.prompt("Enter the new end time of the shift(YYYY/MM/DD HH:MM): ")
-    result = reschedule_shift(shiftId, startTime, endTime)
-    if result:
-        print("Successfully rescheduled shift")
-    else:
-        print("Failed to reschedule shift")
-
     
 app.cli.add_command(admin_cli) # add the group to the cli
 
