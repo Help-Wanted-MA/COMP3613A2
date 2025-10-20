@@ -5,7 +5,7 @@ from.index import index_views
 
 from App.exceptions.handlers import register_error_handlers
 from App.controllers import ( 
-    role_required, timeShift, generate_roster
+    role_required, time_shift, generate_roster
 )
 
 staff_user_views = Blueprint('staff_user_views', __name__, template_folder='../templates')
@@ -22,7 +22,7 @@ def view_roster_route():
 @role_required("staff")
 def time_shift_command(id):
     type = request.args.get("type")
-    shift = timeShift(id, type)
+    shift = time_shift(id, type)
     return jsonify({
         "success": True,
         "shift_id": shift.id,

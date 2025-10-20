@@ -1,5 +1,6 @@
 from App.models import Staff, Shift
 from App.database import db
+from sqlalchemy.exc import SQLAlchemyError
 from App.exceptions.exceptions import NotFoundError, ValidationError, ConflictError, InternalError
 from datetime import datetime
 
@@ -10,12 +11,17 @@ def create_staff_user(username, password):
     if Staff.query.filter_by(name=username).first() is not None:
         raise ConflictError("User already exists")
         
-    newstaff = Staff(name=username, password=password)
-    db.session.add(newstaff)
-    db.session.commit()
-    return newstaff
+    try:
+        newstaff = Staff(name=username, password=password)
+        db.session.add(newstaff)
+        db.session.commit()
+        return newstaff
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        print(e)
+        raise InternalError
 
-def timeShift(shiftId, type, time=None):
+def time_shift(shiftId, type, time=None):
     shift = Shift.query.get(shiftId)
     if not shift:
         raise NotFoundError(f'Shift {shiftId} not found')
@@ -31,9 +37,6 @@ def timeShift(shiftId, type, time=None):
         delta = time - shift.startTime
         if delta.total_seconds() > 600: #If timeIn is more than 10 minutes after scheduled start time
             shift.attendance = "lateTimeIn"
-            
-        db.session.add(shift)
-        db.session.commit()
         
     elif type == "out":
         if shift.timedOut is not None:
@@ -46,23 +49,17 @@ def timeShift(shiftId, type, time=None):
         elif shift.attendance == "Pending":
             shift.attendance = "onTime"
             
-        db.session.add(shift)
-        db.session.commit()
     else:
         raise ValidationError("Invalid type. Must be 'in' or 'out'")
     
-    return shift
-
-def get_shifts(staffId):
-    staff = Staff.query.get(staffId)
-    if not staff:
-        raise NotFoundError(f"Staff with ID: {staffId} not found")
-    
-    shifts = ""
-    for shift in staff.shifts:
-        shifts += f'ID: {shift.Id}, {shift.startTime.strftime("%Y/%m/%d - %H:%M")} to {shift.endTime.strftime("%Y/%m/%d - %H:%M")}\n'
-        
-    return shifts
+    try:
+        db.session.add(shift)
+        db.session.commit()
+        return shift
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        print(e)
+        raise InternalError
 
 def list_staff_json():
     allStaff = Staff.query.all()
@@ -99,6 +96,29 @@ def delete_staff(id):
         db.session.delete(staff)
         db.session.commit()
         return True
-    except Exception as e:
+    except SQLAlchemyError as e:
+        db.session.rollback()
         print(e)
         raise InternalError
+    
+def get_staff_shifts(id, date=None):
+    if isinstance(date, str):
+        try:
+            date = datetime.strptime(date, "%Y/%m/%d").date()
+        except ValueError:
+            raise ValidationError("Invalid date format. Use YYYY/MM/DD")
+        
+    staff = get_staff(id)
+    
+    if date:
+        dayStart = datetime.combine(date, datetime.min.time())
+        endStart = datetime.combine(date, datetime.max.time())
+        shifts = Shift.query.filter(
+            Shift.staffId == id,
+            Shift.startTime >= dayStart, 
+            Shift.startTime <= endStart
+        ).all()
+    else:
+        shifts = Shift.query.filter(Shift.staffId == id).all()
+    
+    return shifts

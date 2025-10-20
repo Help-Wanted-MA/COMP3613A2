@@ -1,6 +1,7 @@
 from App.models import Shift
 from App.database import db
 from datetime import datetime
+from sqlalchemy.exc import SQLAlchemyError
 from App.exceptions.exceptions import ConflictError, InternalError, NotFoundError, ValidationError
 
 def is_shift_timed_in(id):
@@ -22,7 +23,8 @@ def delete_shift(id):
         db.session.delete(shift)
         db.session.commit()
         return True
-    except Exception as e:
+    except SQLAlchemyError as e:
+        db.session.rollback()
         print(e)
         raise InternalError
 

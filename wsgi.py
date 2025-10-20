@@ -5,9 +5,9 @@ from App.database import db, get_migrate
 from App.models import User, Staff, Admin, Shift, Report
 from App.main import create_app
 from App.controllers import ( 
-    initialize, create_admin_user, scheduleShift, get_admin, delete_admin,
+    initialize, create_admin_user, schedule_shift, get_admin, delete_admin,
     delete_staff, delete_shift, generate_report, get_report, list_reports_json, delete_report,
-    create_staff_user, timeShift, get_staff, generate_roster, get_all_staff, get_all_admins, get_shift
+    create_staff_user, time_shift, get_staff, generate_roster, get_all_staff, get_all_admins, get_shift
 )
 
 
@@ -139,7 +139,7 @@ def time_shift_command(type):
     
     shiftId = click.prompt(f'Enter a shift ID to time {type}: ', type=int)
     try:
-        shift = timeShift(shiftId, type)
+        shift = time_shift(shiftId, type)
         if type == "in":
             print(f"Time {type} shift {shift.id} at {shift.timedIn.isoformat()}")
         elif type == "out":
@@ -218,7 +218,7 @@ def schedule_shift_command():
     startTime = click.prompt("Enter the start time of the shift(YYYY/MM/DD HH:MM): ")
     endTime = click.prompt("Enter the end time of the shift(YYYY/MM/DD HH:MM): ")
     try:
-        shift = scheduleShift(staffId, adminId, startTime, endTime)
+        shift = schedule_shift(staffId, adminId, startTime, endTime)
         print(f'Shift scheduled! Details:\n{pretty_print_shift_json(shift.get_json())}')
     except Exception as e:
         print(e)
@@ -243,6 +243,7 @@ def view_report_command():
     
     try:
         report = get_report(reportId)
+        print(report.get_json())
         print(f'{pretty_print_report_json(report.get_json())}')
     except Exception as e:
         print(e)

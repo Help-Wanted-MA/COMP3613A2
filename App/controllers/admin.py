@@ -1,4 +1,5 @@
 from App.models import Admin, Staff, Shift
+from sqlalchemy.exc import SQLAlchemyError
 from App.database import db
 from App.exceptions.exceptions import NotFoundError, ConflictError, InternalError, ValidationError
 from datetime import datetime
@@ -9,14 +10,20 @@ def create_admin_user(username, password):
         
     if Admin.query.filter_by(name=username).first() is not None:
         raise ConflictError("User already exists")
-        
-    newadmin = Admin(name=username, password=password)
-    db.session.add(newadmin)
-    db.session.commit()
-    return newadmin
+    
+    try:    
+        newadmin = Admin(name=username, password=password)
+        db.session.add(newadmin)
+        db.session.commit()
+        return newadmin
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        print(e)
+        raise InternalError
+    
 
-def scheduleShift(staffId, adminId, startTime, endTime):
-    if not staffId or not adminId or not startTime or not endTime:
+def schedule_shift(staffId, adminId, startTime, endTime):
+    if not all([staffId, adminId, startTime, endTime]):
         raise ValidationError("Required field missing")
     
     staffUser = Staff.query.get(staffId)
@@ -33,14 +40,18 @@ def scheduleShift(staffId, adminId, startTime, endTime):
             endTime = datetime.strptime(endTime, "%Y/%m/%d %H:%M")
         except ValueError:
             raise ValidationError("Invalid time format. Please use (YYYY/MM/DD HH:MM)")
-    
-    newShift = Shift(staffId=staffId, staffName=staffUser.name, adminId=adminId, adminName=adminUser.name, startTime=startTime, endTime=endTime)
-    if not newShift:
+
+    try:
+        newShift = Shift(staffId=staffId, staffName=staffUser.name, adminId=adminId, adminName=adminUser.name, startTime=startTime, endTime=endTime)
+        db.session.add(newShift)
+        db.session.commit()
+        return newShift
+    except SQLAlchemyError as e:
+        print(e)
+        db.session.rollback()
         raise InternalError
+        
     
-    db.session.add(newShift)
-    db.session.commit()
-    return newShift
 
 def list_admins_json():
     allAdmins = Admin.query.all()
@@ -77,6 +88,7 @@ def delete_admin(id):
         db.session.delete(admin)
         db.session.commit()
         return True
-    except Exception as e:
+    except SQLAlchemyError as e:
+        db.session.rollback()
         print(e)
         raise InternalError

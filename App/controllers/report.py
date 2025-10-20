@@ -1,5 +1,6 @@
 from App.models import Staff, Shift, Report
 from App.database import db
+from sqlalchemy.exc import SQLAlchemyError
 from App.exceptions.exceptions import ConflictError, InternalError, NotFoundError, ValidationError
 from datetime import datetime, timedelta
 
@@ -86,11 +87,12 @@ def generate_report():
         newReport = Report(roster=roster, data=data)
         db.session.add(newReport)
         db.session.commit()
-    except Exception as e:
+        return newReport
+    except SQLAlchemyError as e:
+        db.session.rollback()
         print(e)
         raise InternalError
     
-    return newReport
 
 def list_reports_json():
     allReports = Report.query.all()
@@ -119,7 +121,8 @@ def delete_report(id):
         db.session.delete(report)
         db.session.commit()
         return True
-    except Exception as e:
+    except SQLAlchemyError as e:
+        db.session.rollback()
         print(e)
         raise InternalError
     

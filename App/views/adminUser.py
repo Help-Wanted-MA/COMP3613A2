@@ -5,7 +5,7 @@ from.index import index_views
 
 from App.exceptions.handlers import register_error_handlers
 from App.controllers import ( 
-   role_required, create_admin_user, scheduleShift, list_admins_json, get_admin, delete_admin,
+   role_required, create_admin_user, schedule_shift, list_admins_json, get_admin, delete_admin, get_staff_shifts,
    delete_staff,delete_shift,generate_report, get_report, list_reports_json, delete_report, get_staff, list_staff_json, create_staff_user
 )
 
@@ -58,7 +58,7 @@ def schedule_shift_route():
     staffId = data["staffId"]
     startTime = data["startTime"] #click.prompt("Enter the start time of the shift(YYYY/MM/DD HH:MM): ")
     endTime = data["endTime"] #click.prompt("Enter the end time of the shift(YYYY/MM/DD HH:MM): ")
-    newShift = scheduleShift(staffId, adminId, startTime, endTime)
+    newShift = schedule_shift(staffId, adminId, startTime, endTime)
     return {
         "success": True,
         "staffId": newShift.staffId,
@@ -142,4 +142,11 @@ def view_staff_route(id):
         "username": data["name"],
         "shifts": data["shifts"]
     }), 200
+    
+@admin_user_views.route('/staff/<int:id>/shifts', methods=['GET'])
+@role_required("admin")
+def get_staff_shifts_route(id):
+    date = request.args.get('date')
+    shifts = get_staff_shifts(id, date)
+    return jsonify([shift.get_json() for shift in shifts])
 
