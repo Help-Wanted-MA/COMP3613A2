@@ -37,7 +37,7 @@ def timeShift(shiftId, type, time=None):
         
     elif type == "out":
         if shift.timedOut is not None:
-            raise ConflictError("Already timed in this shift")
+            raise ConflictError("Already timed out this shift")
         
         shift.timedOut = time
         delta = shift.endTime - time

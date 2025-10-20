@@ -47,15 +47,8 @@ def initialize():
             datetime.combine(weekStart + timedelta(days=3), datetime.strptime("21:00", "%H:%M").time())
             )
     
-    shift7 = scheduleShift(2, 2, 
-            datetime.combine(weekStart - timedelta(days=12), datetime.strptime("20:00", "%H:%M").time()),
-            datetime.combine(weekStart - timedelta(days=12), datetime.strptime("21:00", "%H:%M").time())
-            )
-    
-    shift8 = scheduleShift(2, 1, 
-            datetime.combine(weekStart - timedelta(days=10), datetime.strptime("22:00", "%H:%M").time()),
-            datetime.combine(weekStart - timedelta(days=10), datetime.strptime("23:00", "%H:%M").time())
-            )
+    shift7 = scheduleShift(2, 2, "2025/10/07 10:00", "2025/10/07 12:00")
+    shift8 = scheduleShift(2, 1, "2025/10/09 10:00", "2025/09/09 12:00")
     
     timeShift(1, "in", datetime.combine(weekStart, datetime.strptime("08:01", "%H:%M").time()))
     timeShift(1, "out", datetime.combine(weekStart, datetime.strptime("08:55", "%H:%M").time()))

@@ -44,6 +44,38 @@ def setup_jwt(app):
     elif user_type == "staff":
       return db.session.get(Staff, user_id)
     return None
+  
+  @jwt.expired_token_loader
+  def expired_token_callback(jwt_header, jwt_payload):
+      return jsonify({
+          "success": False,
+          "error": "Token has expired",
+          "message": "Please log in again"
+      }), 401
+
+  @jwt.invalid_token_loader
+  def invalid_token_callback(error):
+      return jsonify({
+          "success": False,
+          "error": "Invalid token",
+          "message": "Authentication failed"
+      }), 401
+
+  @jwt.unauthorized_loader
+  def missing_token_callback(error):
+      return jsonify({
+          "success": False,
+          "error": "Missing authorization header",
+          "message": "You must be logged in"
+      }), 401
+
+  @jwt.revoked_token_loader
+  def revoked_token_callback(jwt_header, jwt_payload):
+      return jsonify({
+          "success": False,
+          "error": "Token has been revoked",
+          "message": "Please log in again"
+      }), 401
 
   return jwt
 
@@ -52,14 +84,22 @@ def role_required(role):
     @wraps(fn)
     def decorated(*args, **kwargs):
       # Ensure JWT is present
-      verify_jwt_in_request()
-      claims = get_jwt()
-      user_type = claims.get("user_type")
+        try:
+          verify_jwt_in_request()
+          claims = get_jwt()
+        except Exception as e:
+          # Handle missing, expired, or invalid tokens
+          return jsonify({
+              "success": False,
+              "error": "Invalid or expired token",
+              "message": str(e)
+          }), 401
+        user_type = claims.get("user_type")
       
-      if user_type != role:
-        return jsonify({"success": False, "error": f"{role.capitalize()} role required"}), 403
+        if user_type != role:
+          return jsonify({"success": False, "error": f"{role.capitalize()} role required"}), 403
       
-      return fn(*args, **kwargs)
+        return fn(*args, **kwargs)
     return decorated
   return wrapper
   

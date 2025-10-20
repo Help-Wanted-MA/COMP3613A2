@@ -23,6 +23,10 @@ def scheduleShift(staffId, adminId, startTime, endTime):
     if not staffUser:
         raise NotFoundError("Staff user not found")
     
+    adminUser = Admin.query.get(adminId)
+    if not adminUser:
+        raise NotFoundError("Admin user not found")
+    
     if isinstance(startTime, str) and isinstance(endTime, str):
         try:
             startTime = datetime.strptime(startTime, "%Y/%m/%d %H:%M")
@@ -30,7 +34,7 @@ def scheduleShift(staffId, adminId, startTime, endTime):
         except ValueError:
             raise ValidationError("Invalid time format. Please use (YYYY/MM/DD HH:MM)")
     
-    newShift = Shift(staffId=staffId, adminId=adminId, startTime=startTime, endTime=endTime)
+    newShift = Shift(staffId=staffId, staffName=staffUser.name, adminId=adminId, adminName=adminUser.name, startTime=startTime, endTime=endTime)
     if not newShift:
         raise InternalError
     

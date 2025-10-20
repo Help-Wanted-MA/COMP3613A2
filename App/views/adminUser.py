@@ -6,7 +6,7 @@ from.index import index_views
 from App.exceptions.handlers import register_error_handlers
 from App.controllers import ( 
    role_required, create_admin_user, scheduleShift, list_admins_json, get_admin, delete_admin,
-   delete_staff,delete_shift,generate_report, get_report, list_reports_json, delete_report
+   delete_staff,delete_shift,generate_report, get_report, list_reports_json, delete_report, get_staff, list_staff_json, create_staff_user
 )
 
 admin_user_views = Blueprint('admin_user_views', __name__, template_folder='../templates')
@@ -18,7 +18,7 @@ def list_admins_route():
     adminList = list_admins_json()
     return jsonify(adminList), 200
     
-@admin_user_views.route('/admin<int:id>', methods=['DELETE'])
+@admin_user_views.route('/admin/<int:id>', methods=['DELETE'])
 @role_required("admin")
 def delete_admin_route(id):
     delete_admin(id)
@@ -35,7 +35,7 @@ def view_admin_route(id):
     return jsonify({
         "staffID": data["id"],
         "username": data["name"],
-        "shifts": data["shifts"]
+        "createdShifts": data["createdShifts"]
     }), 200
 
 @admin_user_views.route('/admin', methods=['POST'])
@@ -64,11 +64,11 @@ def schedule_shift_route():
         "staffId": newShift.staffId,
         "adminId": newShift.adminId,
         "shiftId": newShift.id,
-        "startTime": datetime.strftime(startTime, "%Y/%m/%d %H:%M"),
-        "endTime": datetime.strftime(endTime, "%Y/%m/%d %H:%M"),   
+        "startTime": startTime,
+        "endTime": endTime,   
     }, 201
 
-@admin_user_views.route("/shift<int:id>", methods=['DELETE'])
+@admin_user_views.route("/shift/<int:id>", methods=['DELETE'])
 @role_required("admin")
 def delete_shift_route(id):
     delete_shift(id)
@@ -81,7 +81,7 @@ def delete_shift_route(id):
 @role_required("admin")
 def generate_report_route():
     report = generate_report()
-    return jsonify(report), 200
+    return jsonify(report.get_json()), 200
 
 @admin_user_views.route("/report", methods=["GET"])
 @role_required("admin")
@@ -93,7 +93,7 @@ def list_reports_route():
 @role_required("admin")
 def view_report_route(id):    
     report = get_report(id)
-    return jsonify(report), 200
+    return jsonify(report.get_json()), 200
 
 @admin_user_views.route("/report/<int:id>", methods=["DELETE"])
 @role_required("admin")
@@ -113,4 +113,33 @@ def delete_staff_route(id):
         'message': 'Staff successfully deleted'
     }), 204
 
+@admin_user_views.route('/staff', methods=['POST'])
+@role_required("admin")
+def create_staff_route():
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+        
+    staff = create_staff_user(username, password)
+    return jsonify({
+        'message': f'User successfully created. Username: {username}, ID: {staff.id}'
+    }), 201
+
+@admin_user_views.route('/staff', methods=['GET'])
+@role_required("admin")
+def view_staff_list_route():
+    staffList = list_staff_json()
+    return jsonify(staffList), 200
+        
+@admin_user_views.route('/staff/<int:id>', methods=['GET'])
+@role_required("admin")
+def view_staff_route(id):
+    staff = get_staff(id)
+    data = staff.get_json()
+        
+    return jsonify({
+        "staffID": data["id"],
+        "username": data["name"],
+        "shifts": data["shifts"]
+    }), 200
 

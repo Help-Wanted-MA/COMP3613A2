@@ -2,12 +2,6 @@ from App.models import Shift
 from App.database import db
 from datetime import datetime
 from App.exceptions.exceptions import ConflictError, InternalError, NotFoundError, ValidationError
-def get_shift_info(id):
-    shift = Shift.query.get(id)
-    if not shift:
-        raise NotFoundError(f"Shift not found with ID: {id}")
-
-    return shift.get_json()
 
 def is_shift_timed_in(id):
     shift = Shift.query.get(id)

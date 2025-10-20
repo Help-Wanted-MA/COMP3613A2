@@ -5,47 +5,17 @@ from.index import index_views
 
 from App.exceptions.handlers import register_error_handlers
 from App.controllers import ( 
-    role_required, create_staff_user, timeShift, get_staff, list_staff_json, generate_roster
+    role_required, timeShift, generate_roster
 )
 
 staff_user_views = Blueprint('staff_user_views', __name__, template_folder='../templates')
 register_error_handlers(staff_user_views)
-
-@staff_user_views.route('/staff', methods=['POST'])
-@role_required("staff")
-def create_staff_route():
-    data = request.json
-    username = data.get('username')
-    password = data.get('password')
-        
-    staff = create_staff_user(username, password)
-    return jsonify({
-        'message': f'User successfully created. Username: {username}, ID: {staff.id}'
-    }), 201
-
-@staff_user_views.route('/staff', methods=['GET'])
-@role_required("staff")
-def view_staff_list_route():
-    staffList = list_staff_json()
-    jsonify(staffList), 200
-        
-@staff_user_views.route('/staff/<int:id>', methods=['GET'])
-@role_required("staff")
-def view_staff_route(id):
-    staff = get_staff(id)
-    data = staff.get_json()
-        
-    return jsonify({
-        "staffID": data["id"],
-        "username": data["name"],
-        "shifts": data["shifts"]
-    }), 200
      
 @staff_user_views.route('/staff/roster', methods=['GET'])
-@role_required("staff")
-def view_roster_route(week):
-    week = request.args.get("week")
-    roster = generate_roster(week) #must implement
+@jwt_required()
+def view_roster_route():
+    referenceDate = request.args.get("referenceDate")
+    roster = generate_roster(referenceDate)
     return jsonify(roster), 200    
         
 @staff_user_views.route('/shift/<int:id>', methods=["PATCH"])

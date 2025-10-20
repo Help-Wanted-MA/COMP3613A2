@@ -13,18 +13,18 @@ def generate_roster(referenceDate=None):
     weekStart = referenceDate - timedelta(days=referenceDate.weekday())
     weekEnd = weekStart + timedelta(days=5)
     
-    allStaff = Staff.query.all()
+    shifts = Shift.query.filter(
+        Shift.startTime >= weekStart,
+        Shift.startTime <= weekEnd
+    ).all()
+    
     roster = {}
     
-    for staff in allStaff:
-        shifts = Shift.query.filter(
-            Shift.staffId == staff.id, 
-            Shift.startTime >= weekStart, 
-            Shift.startTime <= weekEnd
-        ).all()
-        
-        roster[staff.name] = [f'{shift.startTime.strftime("%Y/%m/%d %H:%M")} - {shift.endTime.strftime("%Y/%m/%d %H:%M")}' for shift in shifts]
-        
+    for shift in shifts:
+        staff_name = shift.staffName
+        entry = f'{shift.startTime.strftime("%Y/%m/%d %H:%M")} - {shift.endTime.strftime("%Y/%m/%d %H:%M")}'
+        roster.setdefault(staff_name, []).append(entry)
+
     return roster
    
 def generate_report_data():
