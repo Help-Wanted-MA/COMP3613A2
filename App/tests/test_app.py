@@ -149,7 +149,6 @@ class ReportUnitTests(unittest.TestCase):
 
     def test_create_report(self):
         report = Report({"John": ["2025/10/19 08:00 - 2025/10/19 16:00"]}, {"John": {"absents": 0, "earlyTimeOuts": 0, "lateTimeIns": 0, "onTime": 1, "shiftIds": [1], "totalExpectedHours": 8, "totalShifts": 1, "totalWorkedHours": 7.95}})
-        report.dateGenerated = datetime.strptime("2025/10/21 20:00", "%Y/%m/%d %H:%M")
 
         actual = {
             "roster": report.roster,
@@ -397,7 +396,7 @@ class DeleteIntegrationTests(unittest.TestCase):
     def test_1_delete_report(self):
         assert delete_report(1)
 
-    def test_delete_shift(self):
+    def test_2_delete_shift(self):
         assert delete_shift(1)
 
     def test_3_delete_staff(self):

@@ -107,8 +107,6 @@ def get_staff_shifts(id, date=None):
             date = datetime.strptime(date, "%Y/%m/%d").date()
         except ValueError:
             raise ValidationError("Invalid date format. Use YYYY/MM/DD")
-        
-    staff = get_staff(id)
     
     if date:
         dayStart = datetime.combine(date, datetime.min.time())
