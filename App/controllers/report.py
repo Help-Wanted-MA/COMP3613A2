@@ -1,21 +1,34 @@
 from App.models import Staff, Shift, Report
 from App.database import db
+from sqlalchemy.exc import SQLAlchemyError
+from App.exceptions.exceptions import ConflictError, InternalError, NotFoundError, ValidationError
 from datetime import datetime, timedelta
 
-def generate_roster():
-    today = datetime.now().date()
-    weekStart = today - timedelta(days=today.weekday())
-    weekEnd = weekStart + timedelta(days=6)
+#Generate a roster for the week containing `reference_date`. If no date is provided, defaults to the current week
+def generate_roster(referenceDate=None):
+    if referenceDate is None:
+        referenceDate = datetime.now().date()
+    elif isinstance(referenceDate, str):
+        referenceDate = datetime.strptime(referenceDate, "%Y/%m/%d").date()
+        
+    weekStart = referenceDate - timedelta(days=referenceDate.weekday())
+    weekEnd = weekStart + timedelta(days=5)
     
-    allStaff = Staff.query.all()
+    shifts = (
+        Shift.query
+        .filter(Shift.startTime >= weekStart, Shift.startTime <= weekEnd)
+        .order_by(Shift.startTime.asc())
+        .all()
+    )
+    
     roster = {}
     
-    for staff in allStaff:
-        shifts = Shift.query.filter(Shift.staffId == staff.id, Shift.startTime >= weekStart, Shift.startTime <= weekEnd).all()
-        
-        roster[staff.name] = [f'{shift.startTime.strftime("%Y/%m/%d %H:%M")} - {shift.endTime.strftime("%Y/%m/%d %H:%M")}' for shift in shifts]
-        
-    return roster
+    for shift in shifts:
+        staff_name = shift.staffName
+        entry = f'{shift.startTime.strftime("%Y/%m/%d %H:%M")} - {shift.endTime.strftime("%Y/%m/%d %H:%M")}'
+        roster.setdefault(staff_name, []).append(entry)
+
+    return dict(sorted(roster.items()))
    
 def generate_report_data():
     today = datetime.now().date()
@@ -72,49 +85,48 @@ def generate_report():
     roster = generate_roster()
     data = generate_report_data()
 
-    newReport = Report(roster=roster, data=data)
-    db.session.add(newReport)
-    db.session.commit()
-    return newReport
-
-def list_reports():
-    allReports = Report.query.all()
-    str = ""
-    for report in allReports:
-        str += f'Report ID: {report.id} | Generated on: {report.dateGenerated}\n'
-        
-    return str
-
-def pretty_print_report_json(report):
-    str = f'''
-        ReportID: {report["id"]}
-        Date Generated: {report["dateGenerated"]}
-    '''
+    try:
+        newReport = Report(roster=roster, data=data)
+        db.session.add(newReport)
+        db.session.commit()
+        return newReport
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        print(e)
+        raise InternalError
     
-    for staffName, data in report["data"].items():
-        str += f'''
-        -----------------------------------------
-            Name: {staffName}
-            Total Shifts: {data["totalShifts"]},
-            Total Expected Hours: {data["totalExpectedHours"]},
-            Total Worked Hours: {data["totalWorkedHours"]:.2f},
-            On Time: {data["onTime"]},
-            Late Time Ins: {data["lateTimeIns"]},
-            Early Time Outs: {data["earlyTimeOuts"]},
-            Absent: {data["absents"]},
-            shiftIds: {data["shiftIds"]}
-        -----------------------------------------
-        '''
-    return str
+
+def list_reports_json():
+    allReports = Report.query.all()
+    data = []
+    for report in allReports:
+        data.append({
+            "reportId": report.id,
+            "dateGenerated": report.dateGenerated
+        })
+        
+    return data
     
 def get_report(id):
-    return db.session.get(Report, id)
+    report = db.session.get(Report, id)
+    if not report:
+        raise NotFoundError(f'Report with ID: {id} not found')
+    
+    return report
 
 def delete_report(id):
     report = Report.query.get(id)
-    if not report: return None
-    db.session.delete(report)
-    db.session.commit()
+    if not report: 
+        raise NotFoundError(f"Report with ID:{id} not found")
+    
+    try:
+        db.session.delete(report)
+        db.session.commit()
+        return True
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        print(e)
+        raise InternalError
     
 def get_all_reports():
     return db.session.scalars(db.select(Report)).all()

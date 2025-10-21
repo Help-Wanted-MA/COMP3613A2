@@ -1,37 +1,46 @@
 from App.models import Staff, Shift
 from App.database import db
+from sqlalchemy.exc import SQLAlchemyError
+from App.exceptions.exceptions import NotFoundError, ValidationError, ConflictError, InternalError
 from datetime import datetime
 
-def create_staff_user(name, password):
-    newstaff = Staff(name=name, password=password)
-    db.session.add(newstaff)
-    db.session.commit()
-    return newstaff
+def create_staff_user(username, password):
+    if not username or not password:
+        raise ValidationError("Missing username or password")
+        
+    if Staff.query.filter_by(name=username).first() is not None:
+        raise ConflictError("User already exists")
+        
+    try:
+        newstaff = Staff(name=username, password=password)
+        db.session.add(newstaff)
+        db.session.commit()
+        return newstaff
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        print(e)
+        raise InternalError
 
-def timeShift(shiftId, type, time=None):
+def time_shift(shiftId, type, time=None):
     shift = Shift.query.get(shiftId)
     if not shift:
-        return "Shift not found"
-    
+        raise NotFoundError(f'Shift {shiftId} not found')
+
     if not time: 
         time = datetime.now()
         
     if type == "in":
         if shift.timedIn is not None:
-            return "Already timed in this shift"
+            raise ConflictError("Already timed in this shift")
         
         shift.timedIn = time
         delta = time - shift.startTime
         if delta.total_seconds() > 600: #If timeIn is more than 10 minutes after scheduled start time
             shift.attendance = "lateTimeIn"
-            
-        db.session.add(shift)
-        db.session.commit()
-        return f'Timed in at {time.strftime("%Y/%m/%d %H:%M")} for shiftID: {shiftId}'
         
     elif type == "out":
         if shift.timedOut is not None:
-            return "Already timed out this shift"
+            raise ConflictError("Already timed out this shift")
         
         shift.timedOut = time
         delta = shift.endTime - time
@@ -40,47 +49,76 @@ def timeShift(shiftId, type, time=None):
         elif shift.attendance == "Pending":
             shift.attendance = "onTime"
             
+    else:
+        raise ValidationError("Invalid type. Must be 'in' or 'out'")
+    
+    try:
         db.session.add(shift)
         db.session.commit()
-        return f'Timed out at {time.strftime("%Y/%m/%d %H:%M")} for shiftID: {shiftId}'
+        return shift
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        print(e)
+        raise InternalError
 
-def get_shifts(staffId):
-    staff = Staff.query.get(staffId)
-    if not staff: return None
-    
-    shifts = ""
-    for shift in staff.shifts:
-        shifts += f'ID: {shift.Id}, {shift.startTime.strftime("%Y/%m/%d - %H:%M")} to {shift.endTime.strftime("%Y/%m/%d - %H:%M")}\n'
-        
-    return shifts
-    
-def list_staff():
+def list_staff_json():
     allStaff = Staff.query.all()
-    str = ""
+    staffList = []
     for staff in allStaff:
-        str += f'ID: {staff.id}, Name: {staff.name}\n'
-        
-    return str
+        staffList.append({
+            "id": staff.id,
+            "name": staff.name
+        })
+    return staffList
 
 def get_staff_by_name(name):
     result = db.session.execute(db.select(Staff).filter_by(name=name))
-    return result.scalar_one_or_none()
+    staff = result.scalar_one_or_none()
+    if not staff:
+        raise NotFoundError(f"Staff with name: {name} not found")
+    return staff
 
 def get_staff(id):
-    return db.session.get(Staff, id)
+    staff = db.session.get(Staff, id)
+    if not staff:
+        raise NotFoundError(f"Staff not found with ID: {id}")
+    return staff
 
 def get_all_staff():
     return db.session.scalars(db.select(Staff)).all()
-
-def get_all_staff_json():
-    staffUsers = get_all_staff()
-    if not staffUsers:
-        return []
-    staffUsers = [staff.get_json() for staff in staffUsers]
-    return staffUsers
-
+ 
 def delete_staff(id):
     staff = Staff.query.get(id)
-    if not staff: return None
-    db.session.delete(staff)
-    db.session.commit()
+    if not staff: 
+        raise NotFoundError(f"Admin with ID:{id} not found")
+
+    try:
+        db.session.delete(staff)
+        db.session.commit()
+        return True
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        print(e)
+        raise InternalError
+    
+def get_staff_shifts(id, date=None):
+    if isinstance(date, str):
+        try:
+            date = datetime.strptime(date, "%Y/%m/%d").date()
+        except ValueError:
+            raise ValidationError("Invalid date format. Use YYYY/MM/DD")
+        
+    staff = get_staff(id)
+    
+    if date:
+        dayStart = datetime.combine(date, datetime.min.time())
+        endStart = datetime.combine(date, datetime.max.time())
+        shifts = Shift.query.filter(
+            Shift.staffId == id,
+            Shift.startTime >= dayStart, 
+            Shift.startTime <= endStart
+        ).all()
+    else:
+        shifts = Shift.query.filter(Shift.staffId == id).all()
+    
+    return shifts

@@ -3,7 +3,7 @@ from App.database import db
 
 class Staff(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name =  db.Column(db.String(100), nullable=False, unique=True)
+    name =  db.Column(db.String(100), nullable=False)
     password = db.Column(db.String(256), nullable=False)
     shifts = db.relationship('Shift', backref="staff")
     
