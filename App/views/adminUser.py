@@ -22,10 +22,7 @@ def list_admins_route():
 @role_required("admin")
 def delete_admin_route(id):
     delete_admin(id)
-    return jsonify({
-        'success': 'True',
-        'message': 'Admin successfully deleted'
-    }), 204
+    return '', 204
 
 @admin_user_views.route('/admin/<int:id>', methods=['GET'])
 @role_required("admin")
@@ -72,16 +69,13 @@ def schedule_shift_route():
 @role_required("admin")
 def delete_shift_route(id):
     delete_shift(id)
-    return jsonify({
-        'success': 'True',
-        'message': 'Shift successfully deleted'
-    }), 204
+    return '', 204
 
 @admin_user_views.route("/report", methods=["POST"])
 @role_required("admin")
 def generate_report_route():
     report = generate_report()
-    return jsonify(report.get_json()), 200
+    return jsonify(report.get_json()), 201
 
 @admin_user_views.route("/report", methods=["GET"])
 @role_required("admin")
@@ -99,19 +93,13 @@ def view_report_route(id):
 @role_required("admin")
 def delete_report_route(id):    
     delete_report(id)
-    return jsonify({
-        'success': 'True',
-        'message': 'Report successfully deleted'
-    }), 204
+    return '', 204
 
 @admin_user_views.route("/staff/<int:id>", methods=["DELETE"])
 @role_required("admin")
 def delete_staff_route(id):
     delete_staff(id)
-    return jsonify({
-        'success': 'True',
-        'message': 'Staff successfully deleted'
-    }), 204
+    return '', 204
 
 @admin_user_views.route('/staff', methods=['POST'])
 @role_required("admin")

@@ -50,8 +50,8 @@ def initialize():
     shift7 = schedule_shift(2, 2, "2025/10/07 10:00", "2025/10/07 12:00")
     shift8 = schedule_shift(2, 1, "2025/10/09 10:00", "2025/09/09 12:00")
     
-    time_shift(1, "in", datetime.combine(weekStart, datetime.strptime("08:01", "%H:%M").time()))
-    time_shift(1, "out", datetime.combine(weekStart, datetime.strptime("08:55", "%H:%M").time()))
+    #time_shift(1, "in", datetime.combine(weekStart, datetime.strptime("08:01", "%H:%M").time()))
+    #time_shift(1, "out", datetime.combine(weekStart, datetime.strptime("08:55", "%H:%M").time()))
 
     time_shift(2, "in", datetime.combine(weekStart + timedelta(days=1), datetime.strptime("10:11", "%H:%M").time()))
     time_shift(2, "out", datetime.combine(weekStart + timedelta(days=1), datetime.strptime("11:55", "%H:%M").time()))
