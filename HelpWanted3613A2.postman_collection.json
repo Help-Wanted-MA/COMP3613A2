@@ -1,0 +1,2430 @@
+{
+	"info": {
+		"_postman_id": "90abcf04-f5fb-4e92-81bb-88f973ece704",
+		"name": "HelpWanted3613A2",
+		"description": "Ensure the \\[host\\] collection variable is set before running collection tests.  \n  \nRunning the Login routes for either Staff or Admin will automatically store the generated token in the \\[accessToken\\] variable.\n\nWhen running requests individually, ensure you first run Login Admin before running admin routes, or Login Staff before running staff routes, as routes are protected based on role.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "43999413"
+	},
+	"item": [
+		{
+			"name": "Initialize",
+			"item": [
+				{
+					"name": "Initialize",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 200\", () => pm.response.to.have.status(200));\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/init",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"init"
+							]
+						},
+						"description": "Initializes the database"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "/init",
+									"path": [
+										"init"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "Server",
+									"value": "Werkzeug/3.1.3 Python/3.9.10"
+								},
+								{
+									"key": "Date",
+									"value": "Tue, 21 Oct 2025 00:40:30 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "35"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"message\": \"db initialized!\"\n}"
+						}
+					]
+				}
+			],
+			"description": "Contains the initialize route which runs before all other requests during a collection run."
+		},
+		{
+			"name": "Admin",
+			"item": [
+				{
+					"name": "Login Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let data = pm.response.json();\r",
+									"\r",
+									"if (data.access_token) {\r",
+									"    pm.collectionVariables.set(\"accessToken\", data.access_token);\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Status 200\", () => pm.response.to.have.status(200));\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"Jimmy\", \r\n    \"password\": \"jimmypass\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/login",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"login"
+							]
+						},
+						"description": "Logs in as an Admin user"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"username\": \"Jimmy\", \r\n    \"password\": \"jimmypass\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "/api/login",
+									"path": [
+										"api",
+										"login"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "",
+							"header": [],
+							"cookie": [
+								{
+									"expires": "Invalid Date",
+									"domain": "",
+									"path": ""
+								}
+							],
+							"body": "{\r\n    \"access_token\": \"xxxxxxx\"\r\n}"
+						}
+					]
+				},
+				{
+					"name": "Create Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 201\", () => pm.response.to.have.status(201));"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"admin_test\",\n  \"password\": \"securepass\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/admin",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"admin"
+							]
+						},
+						"description": "Creates a new Admin user with the given username and password.  \nDefault: username: \"admin_test\", password: \"securepass\""
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"username\": \"admin_test\",\n  \"password\": \"securepass\"\n}"
+								},
+								"url": {
+									"raw": "/admin",
+									"path": [
+										"admin"
+									]
+								}
+							},
+							"status": "CREATED",
+							"code": 201,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "Server",
+									"value": "Werkzeug/3.1.3 Python/3.9.10"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 20 Oct 2025 22:28:41 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "74"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"message\": \"User successfully created. Username: admin_test, ID: 3\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Create Staff",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 201\", () => pm.response.to.have.status(201));"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"staff_test\",\n  \"password\": \"mypassword\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/staff",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"staff"
+							]
+						},
+						"description": "Creates a new Staff user with the given username and password.  \nDefault: username: \"staff_test\", password: \"mypassword\""
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"username\": \"staff_test\",\n  \"password\": \"mypassword\"\n}"
+								},
+								"url": {
+									"raw": "/staff",
+									"path": [
+										"staff"
+									]
+								}
+							},
+							"status": "CREATED",
+							"code": 201,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "Server",
+									"value": "Werkzeug/3.1.3 Python/3.9.10"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 20 Oct 2025 22:28:55 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "74"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"message\": \"User successfully created. Username: staff_test, ID: 3\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Schedule Shift",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 201\", () => pm.response.to.have.status(201));"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"staffId\": 1,\n  \"startTime\": \"2025/10/20 09:00\",\n  \"endTime\": \"2025/10/20 17:00\"\n}"
+						},
+						"url": {
+							"raw": "{{host}}/shift",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"shift"
+							]
+						},
+						"description": "Schedules a new shift for the given staff ID, specifying the StartTime and EndTime of the shift in \"YYYY/mm/DD HH-MM\" format"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"staffId\": 1,\n  \"startTime\": \"2025/10/20 09:00\",\n  \"endTime\": \"2025/10/20 17:00\"\n}"
+								},
+								"url": {
+									"raw": "/shift",
+									"path": [
+										"shift"
+									]
+								}
+							},
+							"status": "CREATED",
+							"code": 201,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "Server",
+									"value": "Werkzeug/3.1.3 Python/3.9.10"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 20 Oct 2025 22:29:19 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "138"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"adminId\": 1,\n    \"endTime\": \"2025/10/20 17:00\",\n    \"shiftId\": 9,\n    \"staffId\": 1,\n    \"startTime\": \"2025/10/20 09:00\",\n    \"success\": true\n}"
+						}
+					]
+				},
+				{
+					"name": "Generate Report",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 201\", () => pm.response.to.have.status(201));"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/report",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"report"
+							]
+						},
+						"description": "Generates and stores a new report for the current week"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "/report",
+									"path": [
+										"report"
+									]
+								}
+							},
+							"status": "CREATED",
+							"code": 201,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "Server",
+									"value": "Werkzeug/3.1.3 Python/3.9.10"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 20 Oct 2025 23:37:24 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "938"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"data\": {\n        \"John\": {\n            \"absents\": 1,\n            \"earlyTimeOuts\": 1,\n            \"lateTimeIns\": 1,\n            \"onTime\": 1,\n            \"shiftIds\": [\n                3,\n                4,\n                5,\n                6\n            ],\n            \"totalExpectedHours\": 4,\n            \"totalShifts\": 4,\n            \"totalWorkedHours\": 2.083333333333333\n        },\n        \"Tyler\": {\n            \"absents\": 1,\n            \"earlyTimeOuts\": 0,\n            \"lateTimeIns\": 1,\n            \"onTime\": 0,\n            \"shiftIds\": [\n                1,\n                2\n            ],\n            \"totalExpectedHours\": 3,\n            \"totalShifts\": 2,\n            \"totalWorkedHours\": 1.7333333333333334\n        }\n    },\n    \"dateGenerated\": \"2025-10-20\",\n    \"id\": 1,\n    \"roster\": {\n        \"John\": [\n            \"2025/10/20 11:00 - 2025/10/20 12:00\",\n            \"2025/10/21 16:00 - 2025/10/21 17:00\",\n            \"2025/10/22 17:00 - 2025/10/22 18:00\",\n            \"2025/10/23 20:00 - 2025/10/23 21:00\"\n        ],\n        \"Tyler\": [\n            \"2025/10/20 08:00 - 2025/10/20 09:00\",\n            \"2025/10/21 10:00 - 2025/10/21 12:00\"\n        ]\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "Get Staff Shifts",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 200\", () => pm.response.to.have.status(200));\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/staff/:id/shifts?date=2025/10/21",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"staff",
+								":id",
+								"shifts"
+							],
+							"query": [
+								{
+									"key": "date",
+									"value": "2025/10/21",
+									"description": "Retrieves all the shifts for the specified date for the Staff user\n"
+								}
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "Staff ID"
+								}
+							]
+						},
+						"description": "Returns all shifts for a given staff member. If a date is specified, only returns shifts on that given date"
+					},
+					"response": [
+						{
+							"name": "All Shifts",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "/staff/:id/shifts",
+									"path": [
+										"staff",
+										":id",
+										"shifts"
+									],
+									"query": [
+										{
+											"key": "date",
+											"value": "2025/10/21",
+											"description": "Retrieves all the shifts for the specified date for the Staff user\n",
+											"disabled": true
+										}
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "1",
+											"description": "Staff ID"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "Server",
+									"value": "Werkzeug/3.1.3 Python/3.9.10"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 20 Oct 2025 22:59:41 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "540"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								}
+							],
+							"cookie": [],
+							"body": "[\n    {\n        \"adminId\": 1,\n        \"adminName\": \"Jimmy\",\n        \"attendance\": \"Pending\",\n        \"endTime\": \"2025/10/20 09:00\",\n        \"id\": 1,\n        \"staffId\": 1,\n        \"staffName\": \"Tyler\",\n        \"startTime\": \"2025/10/20 08:00\",\n        \"timedIn\": null,\n        \"timedOut\": null\n    },\n    {\n        \"adminId\": 1,\n        \"adminName\": \"Jimmy\",\n        \"attendance\": \"lateTimeIn\",\n        \"endTime\": \"2025/10/21 12:00\",\n        \"id\": 2,\n        \"staffId\": 1,\n        \"staffName\": \"Tyler\",\n        \"startTime\": \"2025/10/21 10:00\",\n        \"timedIn\": \"2025/10/21 10:11\",\n        \"timedOut\": \"2025/10/21 11:55\"\n    }\n]"
+						},
+						{
+							"name": "Specific Date",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/staff/:id/shifts?date=2025/10/21",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"staff",
+										":id",
+										"shifts"
+									],
+									"query": [
+										{
+											"key": "date",
+											"value": "2025/10/21",
+											"description": "Retrieves all the shifts for the specified date for the Staff user\n"
+										}
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "1",
+											"description": "Staff ID"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "Server",
+									"value": "Werkzeug/3.1.3 Python/3.9.10"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 20 Oct 2025 23:00:15 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "287"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								}
+							],
+							"cookie": [],
+							"body": "[\n    {\n        \"adminId\": 1,\n        \"adminName\": \"Jimmy\",\n        \"attendance\": \"lateTimeIn\",\n        \"endTime\": \"2025/10/21 12:00\",\n        \"id\": 2,\n        \"staffId\": 1,\n        \"staffName\": \"Tyler\",\n        \"startTime\": \"2025/10/21 10:00\",\n        \"timedIn\": \"2025/10/21 10:11\",\n        \"timedOut\": \"2025/10/21 11:55\"\n    }\n]"
+						}
+					]
+				},
+				{
+					"name": "List Admins",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/admin",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"admin"
+							]
+						},
+						"description": "Lists all admin names and IDs"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "/admin",
+									"path": [
+										"admin"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "Server",
+									"value": "Werkzeug/3.1.3 Python/3.9.10"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 20 Oct 2025 22:33:20 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "134"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								}
+							],
+							"cookie": [],
+							"body": "[\n    {\n        \"id\": 1,\n        \"name\": \"Jimmy\"\n    },\n    {\n        \"id\": 2,\n        \"name\": \"Bobby\"\n    },\n    {\n        \"id\": 3,\n        \"name\": \"admin_test\"\n    }\n]"
+						}
+					]
+				},
+				{
+					"name": "List Staff",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/staff",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"staff"
+							]
+						},
+						"description": "Lists all Staff names and IDs"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "/staff",
+									"path": [
+										"staff"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "Server",
+									"value": "Werkzeug/3.1.3 Python/3.9.10"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 20 Oct 2025 22:33:31 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "133"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								}
+							],
+							"cookie": [],
+							"body": "[\n    {\n        \"id\": 1,\n        \"name\": \"Tyler\"\n    },\n    {\n        \"id\": 2,\n        \"name\": \"John\"\n    },\n    {\n        \"id\": 3,\n        \"name\": \"staff_test\"\n    }\n]"
+						}
+					]
+				},
+				{
+					"name": "List Reports",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/report",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"report"
+							]
+						},
+						"description": "Lists all Report IDs and the date they were generated on"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{host}}/report",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"report"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "Server",
+									"value": "Werkzeug/3.1.3 Python/3.9.10"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 20 Oct 2025 22:33:49 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "84"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								}
+							],
+							"cookie": [],
+							"body": "[\n    {\n        \"dateGenerated\": \"Mon, 20 Oct 2025 18:29:44 GMT\",\n        \"reportId\": 1\n    }\n]"
+						}
+					]
+				},
+				{
+					"name": "View Staff",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 200\", () => pm.response.to.have.status(200));\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/staff/:id",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"staff",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "Staff ID"
+								}
+							]
+						},
+						"description": "Returns the details of the Staff user with the given ID"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{host}}/staff/:id",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"staff",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "1",
+											"description": "Staff ID"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "Server",
+									"value": "Werkzeug/3.1.3 Python/3.9.10"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 20 Oct 2025 23:10:06 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "645"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"shifts\": [\n        {\n            \"adminId\": 1,\n            \"adminName\": \"Jimmy\",\n            \"attendance\": \"Pending\",\n            \"endTime\": \"2025/10/20 09:00\",\n            \"id\": 1,\n            \"staffId\": 1,\n            \"staffName\": \"Tyler\",\n            \"startTime\": \"2025/10/20 08:00\",\n            \"timedIn\": null,\n            \"timedOut\": null\n        },\n        {\n            \"adminId\": 1,\n            \"adminName\": \"Jimmy\",\n            \"attendance\": \"lateTimeIn\",\n            \"endTime\": \"2025/10/21 12:00\",\n            \"id\": 2,\n            \"staffId\": 1,\n            \"staffName\": \"Tyler\",\n            \"startTime\": \"2025/10/21 10:00\",\n            \"timedIn\": \"2025/10/21 10:11\",\n            \"timedOut\": \"2025/10/21 11:55\"\n        }\n    ],\n    \"staffID\": 1,\n    \"username\": \"Tyler\"\n}"
+						}
+					]
+				},
+				{
+					"name": "View Roster (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{staffToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/staff/roster",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"staff",
+								"roster"
+							],
+							"query": [
+								{
+									"key": "referenceDate",
+									"value": "2025/10/09",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Returns the combined roster for the current week. If a date is specified, returns the roster for the week corresponding to that date."
+					},
+					"response": [
+						{
+							"name": "Current Week",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{host}}/staff/roster",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"staff",
+										"roster"
+									],
+									"query": [
+										{
+											"key": "referenceDate",
+											"value": "2025/10/09",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "Server",
+									"value": "Werkzeug/3.1.3 Python/3.9.10"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 20 Oct 2025 22:35:25 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "337"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"John\": [\n        \"2025/10/20 11:00 - 2025/10/20 12:00\",\n        \"2025/10/21 16:00 - 2025/10/21 17:00\",\n        \"2025/10/22 17:00 - 2025/10/22 18:00\",\n        \"2025/10/23 20:00 - 2025/10/23 21:00\"\n    ],\n    \"Tyler\": [\n        \"2025/10/20 08:00 - 2025/10/20 09:00\",\n        \"2025/10/21 10:00 - 2025/10/21 12:00\",\n        \"2025/10/20 09:00 - 2025/10/20 17:00\"\n    ]\n}"
+						},
+						{
+							"name": "Week from Specified Date",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{host}}/staff/roster?referenceDate=2025/10/09",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"staff",
+										"roster"
+									],
+									"query": [
+										{
+											"key": "referenceDate",
+											"value": "2025/10/09",
+											"description": "Shows the roster for the week corresponding to the date specified"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "Server",
+									"value": "Werkzeug/3.1.3 Python/3.9.10"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 20 Oct 2025 22:36:22 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "105"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"John\": [\n        \"2025/10/07 10:00 - 2025/10/07 12:00\",\n        \"2025/10/09 10:00 - 2025/09/09 12:00\"\n    ]\n}"
+						}
+					]
+				},
+				{
+					"name": "View Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/admin/:id",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"admin",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "Admin ID"
+								}
+							]
+						},
+						"description": "Returns the details of the Admin user with the given ID"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{host}}/admin/:id",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"admin",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "1",
+											"description": "Admin ID"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "Server",
+									"value": "Werkzeug/3.1.3 Python/3.9.10"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 20 Oct 2025 23:12:42 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "1540"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"createdShifts\": [\n        {\n            \"adminId\": 1,\n            \"adminName\": \"Jimmy\",\n            \"attendance\": \"Pending\",\n            \"endTime\": \"2025/10/20 09:00\",\n            \"id\": 1,\n            \"staffId\": 1,\n            \"staffName\": \"Tyler\",\n            \"startTime\": \"2025/10/20 08:00\",\n            \"timedIn\": null,\n            \"timedOut\": null\n        },\n        {\n            \"adminId\": 1,\n            \"adminName\": \"Jimmy\",\n            \"attendance\": \"lateTimeIn\",\n            \"endTime\": \"2025/10/21 12:00\",\n            \"id\": 2,\n            \"staffId\": 1,\n            \"staffName\": \"Tyler\",\n            \"startTime\": \"2025/10/21 10:00\",\n            \"timedIn\": \"2025/10/21 10:11\",\n            \"timedOut\": \"2025/10/21 11:55\"\n        },\n        {\n            \"adminId\": 1,\n            \"adminName\": \"Jimmy\",\n            \"attendance\": \"earlyTimeOut\",\n            \"endTime\": \"2025/10/20 12:00\",\n            \"id\": 3,\n            \"staffId\": 2,\n            \"staffName\": \"John\",\n            \"startTime\": \"2025/10/20 11:00\",\n            \"timedIn\": \"2025/10/20 11:01\",\n            \"timedOut\": \"2025/10/20 11:30\"\n        },\n        {\n            \"adminId\": 1,\n            \"adminName\": \"Jimmy\",\n            \"attendance\": \"onTime\",\n            \"endTime\": \"2025/10/22 18:00\",\n            \"id\": 5,\n            \"staffId\": 2,\n            \"staffName\": \"John\",\n            \"startTime\": \"2025/10/22 17:00\",\n            \"timedIn\": \"2025/10/22 17:01\",\n            \"timedOut\": \"2025/10/22 17:59\"\n        },\n        {\n            \"adminId\": 1,\n            \"adminName\": \"Jimmy\",\n            \"attendance\": \"Pending\",\n            \"endTime\": \"2025/09/09 12:00\",\n            \"id\": 8,\n            \"staffId\": 2,\n            \"staffName\": \"John\",\n            \"startTime\": \"2025/10/09 10:00\",\n            \"timedIn\": null,\n            \"timedOut\": null\n        }\n    ],\n    \"staffID\": 1,\n    \"username\": \"Jimmy\"\n}"
+						}
+					]
+				},
+				{
+					"name": "View Report",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/report/:id",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"report",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "Report ID"
+								}
+							]
+						},
+						"description": "Returns the details of the Report with the given ID"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{host}}/report/:id",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"report",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "1",
+											"description": "Report ID"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "Server",
+									"value": "Werkzeug/3.1.3 Python/3.9.10"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 20 Oct 2025 23:13:16 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "938"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"data\": {\n        \"John\": {\n            \"absents\": 1,\n            \"earlyTimeOuts\": 1,\n            \"lateTimeIns\": 1,\n            \"onTime\": 1,\n            \"shiftIds\": [\n                3,\n                4,\n                5,\n                6\n            ],\n            \"totalExpectedHours\": 4,\n            \"totalShifts\": 4,\n            \"totalWorkedHours\": 2.083333333333333\n        },\n        \"Tyler\": {\n            \"absents\": 1,\n            \"earlyTimeOuts\": 0,\n            \"lateTimeIns\": 1,\n            \"onTime\": 0,\n            \"shiftIds\": [\n                1,\n                2\n            ],\n            \"totalExpectedHours\": 3,\n            \"totalShifts\": 2,\n            \"totalWorkedHours\": 1.7333333333333334\n        }\n    },\n    \"dateGenerated\": \"2025-10-20\",\n    \"id\": 1,\n    \"roster\": {\n        \"John\": [\n            \"2025/10/20 11:00 - 2025/10/20 12:00\",\n            \"2025/10/21 16:00 - 2025/10/21 17:00\",\n            \"2025/10/22 17:00 - 2025/10/22 18:00\",\n            \"2025/10/23 20:00 - 2025/10/23 21:00\"\n        ],\n        \"Tyler\": [\n            \"2025/10/20 08:00 - 2025/10/20 09:00\",\n            \"2025/10/21 10:00 - 2025/10/21 12:00\"\n        ]\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "Delete Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/admin/:id",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"admin",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "2",
+									"description": "Admin ID"
+								}
+							]
+						},
+						"description": "Deletes the Admin user with the given ID"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{host}}/admin/:id",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"admin",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "2",
+											"description": "Admin ID"
+										}
+									]
+								}
+							},
+							"status": "NO CONTENT",
+							"code": 204,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "Server",
+									"value": "Werkzeug/3.1.3 Python/3.9.10"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 20 Oct 2025 22:51:57 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								}
+							],
+							"cookie": [],
+							"body": null
+						}
+					]
+				},
+				{
+					"name": "Delete Staff",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/staff/:id",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"staff",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "2",
+									"description": "Staff ID"
+								}
+							]
+						},
+						"description": "Deletes the Staff user with the given ID"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{host}}/staff/:id",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"staff",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "2",
+											"description": "Staff ID"
+										}
+									]
+								}
+							},
+							"status": "NO CONTENT",
+							"code": 204,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "Server",
+									"value": "Werkzeug/3.1.3 Python/3.9.10"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 20 Oct 2025 22:52:08 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								}
+							],
+							"cookie": [],
+							"body": null
+						}
+					]
+				},
+				{
+					"name": "Delete Shift",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/shift/:id",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"shift",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "2",
+									"description": "Shift ID"
+								}
+							]
+						},
+						"description": "Deletes the Shift with the given ID"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{host}}/shift/:id",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"shift",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "1",
+											"description": "Shift ID"
+										}
+									]
+								}
+							},
+							"status": "NO CONTENT",
+							"code": 204,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "Server",
+									"value": "Werkzeug/3.1.3 Python/3.9.10"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 20 Oct 2025 22:52:24 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								}
+							],
+							"cookie": [],
+							"body": null
+						}
+					]
+				},
+				{
+					"name": "Delete Report",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/report/:id",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"report",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "Report ID"
+								}
+							]
+						},
+						"description": "Deletes the Report with the given ID"
+					},
+					"response": [
+						{
+							"name": "Delete Report",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{host}}/report/:id",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"report",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "1",
+											"description": "Report ID"
+										}
+									]
+								}
+							},
+							"status": "NO CONTENT",
+							"code": 204,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "Server",
+									"value": "Werkzeug/3.1.3 Python/3.9.10"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 20 Oct 2025 22:52:44 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								}
+							],
+							"cookie": [],
+							"body": null
+						}
+					]
+				}
+			],
+			"description": "Routes accessible to Admin users"
+		},
+		{
+			"name": "Staff",
+			"item": [
+				{
+					"name": "Login Staff",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let data = pm.response.json();\r",
+									"\r",
+									"if (data.access_token) {\r",
+									"    pm.collectionVariables.set(\"accessToken\", data.access_token);\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Status 200\", () => pm.response.to.have.status(200));\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"Tyler\", \r\n    \"password\": \"tylerpass\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/login",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"login"
+							]
+						},
+						"description": "Logs in as a Staff user"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"username\": \"Tyler\", \r\n    \"password\": \"tylerpass\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{host}}/api/login",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"api",
+										"login"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "",
+							"header": [],
+							"cookie": [
+								{
+									"expires": "Invalid Date",
+									"domain": "",
+									"path": ""
+								}
+							],
+							"body": "{\r\n    \"access_token\": \"xxxxxxx\"\r\n}"
+						}
+					]
+				},
+				{
+					"name": "View Roster (Staff)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/staff/roster",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"staff",
+								"roster"
+							],
+							"query": [
+								{
+									"key": "referenceDate",
+									"value": "2025/10/09",
+									"description": "Shows the roster for the week corresponding to the date specified",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Returns the combined roster for the current week. If a date is specified, returns the roster for the week corresponding to that date."
+					},
+					"response": [
+						{
+							"name": "Current Week",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{host}}/staff/roster",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"staff",
+										"roster"
+									],
+									"query": [
+										{
+											"key": "referenceDate",
+											"value": "2025/10/09",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "Server",
+									"value": "Werkzeug/3.1.3 Python/3.9.10"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 20 Oct 2025 22:10:07 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "294"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"John\": [\n        \"2025/10/20 11:00 - 2025/10/20 12:00\",\n        \"2025/10/21 16:00 - 2025/10/21 17:00\",\n        \"2025/10/22 17:00 - 2025/10/22 18:00\",\n        \"2025/10/23 20:00 - 2025/10/23 21:00\"\n    ],\n    \"Tyler\": [\n        \"2025/10/20 08:00 - 2025/10/20 09:00\",\n        \"2025/10/21 10:00 - 2025/10/21 12:00\"\n    ]\n}"
+						},
+						{
+							"name": "Week from Specified Date",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{host}}/staff/roster?referenceDate=2025/10/09",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"staff",
+										"roster"
+									],
+									"query": [
+										{
+											"key": "referenceDate",
+											"value": "2025/10/09",
+											"description": "Shows the roster for the week corresponding to the date specified"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "Server",
+									"value": "Werkzeug/3.1.3 Python/3.9.10"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 20 Oct 2025 22:54:25 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "105"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"John\": [\n        \"2025/10/07 10:00 - 2025/10/07 12:00\",\n        \"2025/10/09 10:00 - 2025/09/09 12:00\"\n    ]\n}"
+						}
+					]
+				},
+				{
+					"name": "Time Shift",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/shift/:id?type=in",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"shift",
+								":id"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "in",
+									"description": "\"in\" or \"out\" to Time in / Time Out respectively"
+								}
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "Shift ID"
+								}
+							]
+						},
+						"description": "Time in/out the Shift with the given ID"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{host}}/shift/1?type=in",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"shift",
+										"1"
+									],
+									"query": [
+										{
+											"key": "type",
+											"value": "in"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "Server",
+									"value": "Werkzeug/3.1.3 Python/3.9.10"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 20 Oct 2025 22:27:19 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "125"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"attendance\": \"lateTimeIn\",\n    \"shift_id\": 1,\n    \"success\": true,\n    \"time\": \"2025-10-20T18:27:19.462402\",\n    \"type\": \"in\"\n}"
+						}
+					]
+				}
+			],
+			"description": "Routes accessible to Staff users."
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{accessToken}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "host",
+			"value": ""
+		},
+		{
+			"key": "accessToken",
+			"value": ""
+		}
+	]
+}
