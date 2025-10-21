@@ -1,13 +1,14 @@
 import click, pytest, sys
 from flask.cli import with_appcontext, AppGroup
+from flask_jwt_extended import decode_token
 
 from App.database import db, get_migrate
 from App.models import User, Staff, Admin, Shift, Report
 from App.main import create_app
 from App.controllers import ( 
-    initialize, create_admin_user, schedule_shift, get_admin, delete_admin,
+    initialize, create_admin_user, schedule_shift, get_admin, delete_admin, login, list_admins_json,
     delete_staff, delete_shift, generate_report, get_report, list_reports_json, delete_report,
-    create_staff_user, time_shift, get_staff, generate_roster, get_all_staff, get_all_admins, get_shift
+    create_staff_user, time_shift, get_staff, generate_roster, get_all_staff, get_all_admins, get_shift, get_staff_shifts
 )
 
 
@@ -253,6 +254,11 @@ def view_report_command():
 def view_staff_admin_command():
     view_staff()
     
+
+@admin_cli.command("print")
+def yup():
+    print(generate_roster())
+
 app.cli.add_command(admin_cli) # add the group to the cli
 
 
@@ -263,13 +269,13 @@ Test Commands
 
 test = AppGroup('test', help='Testing commands') 
 
-@test.command("user", help="Run User tests")
+@test.command("run", help="Run User tests")
 @click.argument("type", default="all")
 def user_tests_command(type):
     if type == "unit":
-        sys.exit(pytest.main(["-k", "UserUnitTests"]))
+        sys.exit(pytest.main(["-k", "AdminUnitTests or StaffUnitTests or ShiftUnitTests or ReportUnitTests"]))
     elif type == "int":
-        sys.exit(pytest.main(["-k", "UserIntegrationTests"]))
+        sys.exit(pytest.main(["-k", "AdminIntegrationTests or StaffIntegrationTests or ShiftIntegrationTests or ReportIntegrationTests or DeleteIntegrationTests"]))
     else:
         sys.exit(pytest.main(["-k", "App"]))
     
