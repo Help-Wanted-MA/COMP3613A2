@@ -1,6 +1,7 @@
 from .user import create_user
 from .admin import create_admin_user, schedule_shift
 from .staff import create_staff_user, time_shift
+from .report import generate_report
 from App.database import db
 from datetime import datetime, timedelta
 
@@ -67,4 +68,4 @@ def initialize():
     time_shift(6, "in", datetime.combine(weekStart + timedelta(days=3), datetime.strptime("20:20", "%H:%M").time()))
     time_shift(6, "out", datetime.combine(weekStart + timedelta(days=3), datetime.strptime("20:58", "%H:%M").time()))
     
-    
+    generate_report()

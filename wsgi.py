@@ -255,10 +255,6 @@ def view_staff_admin_command():
     view_staff()
     
 
-@admin_cli.command("print")
-def yup():
-    print(generate_roster())
-
 app.cli.add_command(admin_cli) # add the group to the cli
 
 
